@@ -1,4 +1,4 @@
 (executable
- (public_name herb)
- (name main)
+ (public_name herbc)
+ (name herbc)
  (libraries herb))

@@ -7,4 +7,4 @@ RUN alias clang=/usr/bin/clang-15
 RUN opam install dune
 
 # Development tools
-RUN opam install ocaml-lsp-server ocamlformat
+RUN opam install ocaml-lsp-server ocamlformat utop
