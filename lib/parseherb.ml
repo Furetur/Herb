@@ -1,5 +1,3 @@
-module Parsetree = Parsetree
-
 let parse c =
   let buf = Lexing.from_channel c in
   try

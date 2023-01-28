@@ -1,4 +1,4 @@
 (executable
  (public_name herbc)
  (name herbc)
- (libraries herb))
+ (libraries cmdliner herb))

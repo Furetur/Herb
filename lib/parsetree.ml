@@ -1,5 +1,4 @@
-type 'a located =
-  { loc: Lexing.position * Lexing.position; value: 'a }
+open Loc
 
 let pp_located (f: Format.formatter -> 'a -> unit) (fmt: Format.formatter) (x: 'a located): unit =
   f fmt x.value
