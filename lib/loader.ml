@@ -9,9 +9,12 @@ let parse path =
     with
     | Lexer.Error msg -> Error msg
     | Parser.Error ->
-        let msg = Printf.sprintf "At offset %d: syntax error.\n%!" (Lexing.lexeme_start buf) in
+        let msg =
+          Printf.sprintf "At offset %d: syntax error.\n%!"
+            (Lexing.lexeme_start buf)
+        in
         Error msg
-    in
+  in
   In_channel.with_file path ~f:parse_chan
 
 let load_project file = parse file

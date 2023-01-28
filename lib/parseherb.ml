@@ -6,5 +6,8 @@ let parse c =
   with
   | Lexer.Error msg -> Error msg
   | Parser.Error ->
-      let msg = Printf.sprintf "At offset %d: syntax error.\n%!" (Lexing.lexeme_start buf) in
+      let msg =
+        Printf.sprintf "At offset %d: syntax error.\n%!"
+          (Lexing.lexeme_start buf)
+      in
       Error msg
