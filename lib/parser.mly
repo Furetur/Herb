@@ -7,7 +7,7 @@
 // Operators
 %token ASSIGN "="
 %token PLUS "+" MINUS "-" MUL "*" DIV "/" MOD "%"
-%token  OR "||" AND "&&" NOT "!"
+%token OR "||" AND "&&" NOT "!"
 %token LT "<" LTE "<=" EQ "==" NEQ "!=" GTE ">=" GT ">"
 
 // Punctuation
@@ -18,24 +18,38 @@
 
 
 %{ open Parsetree %}
-%start <Parsetree.prog> prog
+%start <Parsetree.herbfile> herbfile
 
 %%
 
 (* -------------------------------------------------------------------------- *)
 
-let prog :=
-  d=decl*; EOF; <> 
+let herbfile :=
+  d=toplevel_decl*; EOF; <> 
+
+(* -----    Types    ----- *)
+
 
 (* ----- Declarations ----- *)
 
-let decl :=
-  located ( ENTRY; "{"; e = expr; "}"; { PEntry e } )
+let raw_let_decl := LET; name=ID; "="; e=expr; { (name, e) }
+
+let toplevel_decl :=
+  located (
+    | ENTRY; e=expr_block; { PEntry e }
+    | d=raw_let_decl; ";"; { PToplevelLet d }
+  )
 
 (* ----- Expressions ----- *)
 
+let expr_block := LBRACE; exprs=separated_list(";", expr); RBRACE; { exprs }
+
 let expr :=
-  additive_expr
+  | additive_expr
+  | located( 
+    | exprs=expr_block; { PExprBlock exprs }
+    | d=raw_let_decl; { PLet d }
+    )
 
 let additive_expr :=
   | multiplicative_expr

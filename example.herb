@@ -1,1 +1,9 @@
-entry { 1 }
+let f = {
+    1;
+    2;
+    {}
+ };
+
+entry {
+    let x = let y = 5
+}
