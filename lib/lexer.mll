@@ -25,8 +25,10 @@ rule token = parse
 
 (* Keywords *)
 | "let" { LET }
-| "fun" { FUN }
 | "entry" { ENTRY }
+| "if" { IF }
+| "else" { ELSE }
+| "while" { WHILE }
 
 (* Atoms *)
 | id as name
@@ -35,7 +37,8 @@ rule token = parse
     { INT (int_of_string i) }
 
 (* Operators *)
-| '='  { ASSIGN }
+| "="   { DEF }
+| ":="  { ASSIGN }
 
 | '+'  { PLUS }
 | '-'  { MINUS }

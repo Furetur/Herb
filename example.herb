@@ -1,9 +1,5 @@
-let f = {
-    1;
-    2;
-    {}
- };
+let f = (x: int, y: int) -> x + y;
 
 entry {
-    let x = let y = 5
+    1 := 7 := 0
 }
