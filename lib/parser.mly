@@ -13,10 +13,10 @@
 %token LT "<" LTE "<=" EQ "==" NEQ "!=" GTE ">=" GT ">"
 
 // Punctuation
-%token COMMA "," COLON ":" SEMI ";" ARROW "->" LPAREN "(" RPAREN ")" LBRACE "{" RBRACE "}"
+%token COMMA "," COLON ":" SEMI ";" ARROW "->" LPAREN "(" RPAREN ")" LBRACE "{" RBRACE "}" DOT "."
 
 // Keywords
-%token LET ENTRY IF ELSE WHILE
+%token LET ENTRY IF ELSE WHILE IMPORT
 
 
 %{ 
@@ -36,7 +36,15 @@
 (* -------------------------------------------------------------------------- *)
 
 let herbfile :=
-  d=toplevel_decl*; EOF; <> 
+  i=import*; d=toplevel_decl*; EOF; { {imports=i; decls=d } }
+
+(* -----   Imports   ----- *)
+
+let import := located(
+  | IMPORT; repo=ID; ":"; path=separated_nonempty_list(".", ID); { { repo = Some repo; path } }
+  | IMPORT; path=separated_nonempty_list(".", ID); { { repo = None; path } }
+)
+
 
 (* -----    Types    ----- *)
 

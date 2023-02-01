@@ -29,6 +29,7 @@ rule token = parse
 | "if" { IF }
 | "else" { ELSE }
 | "while" { WHILE }
+| "import" { IMPORT }
 
 (* Atoms *)
 | id as name
@@ -67,6 +68,7 @@ rule token = parse
 | ')'  { RPAREN }
 | '{'  { LBRACE }
 | '}'  { RBRACE }
+| '.'  { DOT }
 | eof  { EOF }
 
 | _

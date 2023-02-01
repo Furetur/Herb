@@ -53,6 +53,12 @@ type raw_top_decl = PEntry of expr_block | PToplevelLet of raw_let_decl
 
 type top_decl = raw_top_decl located [@@deriving show]
 
+(* ----- Imports ----- *)
+
+type raw_import = { repo : string option; path : string list } [@@deriving show]
+type import = raw_import located [@@deriving show]
+
 (* ----- File ----- *)
 
-type herbfile = top_decl list [@@deriving show]
+type herbfile = { imports : import list; decls : top_decl list }
+[@@deriving show]
