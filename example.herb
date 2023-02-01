@@ -1,5 +1,6 @@
-let f = (x: int, y: int) -> x + y;
+let f = (x: int, y: int) -> x + y
 
 entry {
-    1 := 7 := 0
+    "12"
+    print(1, 2, 3)
 }

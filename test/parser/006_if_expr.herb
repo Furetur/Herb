@@ -1,0 +1,10 @@
+let a = 2
+let b = if a % 2 == 0 { true } else { false }
+
+entry {
+    if b {
+        0
+    } else {
+        1
+    }
+}

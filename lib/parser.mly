@@ -53,7 +53,7 @@ let raw_let_decl := LET; name=ID; "="; e=expr; { (name, e) }
 let toplevel_decl :=
   located (
     | ENTRY; e=expr_block; { PEntry e }
-    | d=raw_let_decl; ";"; { PToplevelLet d }
+    | d=raw_let_decl; { PToplevelLet d }
   )
 
 (* ----- Expressions ----- *)
@@ -96,7 +96,7 @@ let expr :=
     | WHILE; cond=expr; body=expr_block; { PWhile { cond; body } }
   )
 
-let expr_block := LBRACE; exprs=separated_list(";", expr); RBRACE; { exprs }
+let expr_block := LBRACE; exprs=expr*; RBRACE; { exprs }
 
 (* -- Operators -- *)
 

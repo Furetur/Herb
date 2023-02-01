@@ -1,2 +1,6 @@
-(test
- (name herb))
+(test 
+ (name herbc)
+ (package herb))
+
+(cram
+ (deps %{bin:herbc}))

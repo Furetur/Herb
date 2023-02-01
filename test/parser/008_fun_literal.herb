@@ -1,0 +1,5 @@
+let f = (x: int) -> x
+
+entry {
+    ((y: int) -> y) (1)
+}
