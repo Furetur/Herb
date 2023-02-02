@@ -29,6 +29,7 @@ type expr = raw_expr located [@@deriving show]
 
 and raw_expr =
   | PInt of int
+  | PString of string
   | PIdent of string
   | PFunLiteral of fun_literal
   | PAssign of expr * expr

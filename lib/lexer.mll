@@ -18,6 +18,9 @@ let whitespace = [' ' '\t']+
 let digit = ['0'-'9']
 let id = ['a'-'z'] ['a'-'z' '0'-'9' '_']*
 
+let string_literal_char = ("\\" _) | [^ '"' '\\']
+let string_literal = '"' string_literal_char* '"'
+
 rule token = parse
 (* Whitespace *)
 | whitespace { token lexbuf }
@@ -36,6 +39,8 @@ rule token = parse
     { ID (name) }
 | digit+ as i
     { INT (int_of_string i) }
+| '"' (string_literal_char* as s) '"'
+    { STRING ( s ) }
 
 (* Operators *)
 | "="   { DEF }

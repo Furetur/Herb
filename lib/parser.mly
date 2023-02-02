@@ -3,6 +3,7 @@
 // Atoms
 %token <int> INT
 %token <string> ID
+%token <string> STRING
 
 
 // Operators
@@ -77,6 +78,7 @@ let fun_literal :=
 let operand := 
   | located(
       | i = INT; { PInt i }
+      | s = STRING; { PString s }
       | name=ID; { PIdent name }
       | f=fun_literal; { f }
     )

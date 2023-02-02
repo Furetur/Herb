@@ -148,4 +148,16 @@
     [{ Parsetree.repo = (Some "herb"); path = ["containers"; "map"] };
       { Parsetree.repo = None; path = ["utils"] }];
     decls = [(Parsetree.PEntry [])] }
+  $ herbc ../../../../../test/parser/012_string_literal.herb
+  { Parsetree.imports = [];
+    decls =
+    [(Parsetree.PToplevelLet ("a", (Parsetree.PString "123")));
+      (Parsetree.PToplevelLet
+         ("b",
+          (Parsetree.PString "\208\159\209\128\208\184\208\178\208\181\209\130")));
+      (Parsetree.PEntry
+         [(Parsetree.PString "\208\159\208\190\208\186\208\176!bye")])
+      ]
+    }
+
 
