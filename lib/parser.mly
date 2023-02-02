@@ -14,10 +14,10 @@
 %token LT "<" LTE "<=" EQ "==" NEQ "!=" GTE ">=" GT ">"
 
 // Punctuation
-%token COMMA "," COLON ":" SEMI ";" ARROW "->" LPAREN "(" RPAREN ")" LBRACE "{" RBRACE "}" DOT "."
+%token COMMA "," COLON ":" SEMI ";" ARROW "->" LPAREN "(" RPAREN ")" LBRACE "{" RBRACE "}" DOT "." DOTDOT ".."
 
 // Keywords
-%token LET ENTRY IF ELSE WHILE IMPORT
+%token LET ENTRY IF ELSE WHILE IMPORT FOR
 
 
 %{ 
@@ -104,6 +104,7 @@ let expr :=
     | IF; cond=expr; then_=expr_block; { PIf {cond; then_; else_=[]} }
     | IF; cond=expr; then_=expr_block; ELSE; else_=expr_block; { PIf {cond; then_; else_} }
     | WHILE; cond=expr; body=expr_block; { PWhile { cond; body } }
+    | FOR; i=ID; "="; start_=expr; ".."; end_=expr; body=expr_block; { PFor { i; start_; end_; body } } 
   )
 
 let expr_block := LBRACE; exprs=expr*; RBRACE; { exprs }

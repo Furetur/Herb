@@ -40,6 +40,7 @@ and raw_expr =
   | PLet of raw_let_decl
   | PIf of { cond : expr; then_ : expr_block; else_ : expr_block }
   | PWhile of { cond : expr; body : expr_block }
+  | PFor of { i : string; start_ : expr; end_ : expr; body : expr_block }
 [@@deriving show]
 
 and expr_block = expr list

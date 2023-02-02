@@ -33,6 +33,7 @@ rule token = parse
 | "else" { ELSE }
 | "while" { WHILE }
 | "import" { IMPORT }
+| "for" { FOR }
 
 (* Atoms *)
 | id as name
@@ -73,6 +74,7 @@ rule token = parse
 | ')'  { RPAREN }
 | '{'  { LBRACE }
 | '}'  { RBRACE }
+| ".." { DOTDOT }
 | '.'  { DOT }
 | eof  { EOF }
 

@@ -159,5 +159,26 @@
          [(Parsetree.PString "\208\159\208\190\208\186\208\176!bye")])
       ]
     }
+  $ herbc ../../../../../test/parser/013_for_numeric.herb
+  { Parsetree.imports = [];
+    decls =
+    [(Parsetree.PToplevelLet
+        ("x",
+         Parsetree.PFor {i = "i"; start_ = (Parsetree.PInt 1);
+           end_ = (Parsetree.PInt 10);
+           body =
+           [Parsetree.PFunCall {callee = (Parsetree.PIdent "print");
+              args = [(Parsetree.PIdent "i")]}
+             ]}));
+      (Parsetree.PEntry
+         [Parsetree.PFor {i = "j"; start_ = (Parsetree.PInt 1);
+            end_ = (Parsetree.PInt 100);
+            body =
+            [Parsetree.PFunCall {callee = (Parsetree.PIdent "call");
+               args = [(Parsetree.PIdent "j")]}
+              ]}
+           ])
+      ]
+    }
 
 
