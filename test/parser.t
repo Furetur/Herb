@@ -1,8 +1,8 @@
-  $ herbc ../../../../../test/parser/000_empty.herb
+  $ parse ../../../../../test/parser/000_empty.herb
   { Parsetree.imports = []; decls = [] }
-  $ herbc ../../../../../test/parser/001_empty_entry.herb
+  $ parse ../../../../../test/parser/001_empty_entry.herb
   { Parsetree.imports = []; decls = [(Parsetree.PEntry [])] }
-  $ herbc ../../../../../test/parser/002_simple_arithmetics.herb
+  $ parse ../../../../../test/parser/002_simple_arithmetics.herb
   { Parsetree.imports = [];
     decls =
     [(Parsetree.PEntry
@@ -13,7 +13,7 @@
           ])
       ]
     }
-  $ herbc ../../../../../test/parser/003_complex_arithmetics.herb
+  $ parse ../../../../../test/parser/003_complex_arithmetics.herb
   { Parsetree.imports = [];
     decls =
     [(Parsetree.PEntry
@@ -35,7 +35,7 @@
           ])
       ]
     }
-  $ herbc ../../../../../test/parser/004_assign_associativity.herb
+  $ parse ../../../../../test/parser/004_assign_associativity.herb
   { Parsetree.imports = [];
     decls =
     [(Parsetree.PEntry
@@ -48,10 +48,10 @@
           ])
       ]
     }
-  $ herbc ../../../../../test/parser/005_toplevel_let.herb
+  $ parse ../../../../../test/parser/005_toplevel_let.herb
   { Parsetree.imports = [];
     decls = [(Parsetree.PToplevelLet ("f", (Parsetree.PInt 14)))] }
-  $ herbc ../../../../../test/parser/006_if_expr.herb
+  $ parse ../../../../../test/parser/006_if_expr.herb
   { Parsetree.imports = [];
     decls =
     [(Parsetree.PToplevelLet ("a", (Parsetree.PInt 2)));
@@ -71,7 +71,7 @@
            ])
       ]
     }
-  $ herbc ../../../../../test/parser/007_fun_call.herb
+  $ parse ../../../../../test/parser/007_fun_call.herb
   { Parsetree.imports = [];
     decls =
     [(Parsetree.PToplevelLet
@@ -84,7 +84,7 @@
            ])
       ]
     }
-  $ herbc ../../../../../test/parser/008_fun_literal.herb
+  $ parse ../../../../../test/parser/008_fun_literal.herb
   { Parsetree.imports = [];
     decls =
     [(Parsetree.PToplevelLet
@@ -102,7 +102,7 @@
            ])
       ]
     }
-  $ herbc ../../../../../test/parser/009_local_let.herb
+  $ parse ../../../../../test/parser/009_local_let.herb
   { Parsetree.imports = [];
     decls =
     [(Parsetree.PEntry
@@ -111,7 +111,7 @@
           (Parsetree.PIdent "a")])
       ]
     }
-  $ herbc ../../../../../test/parser/010_fact.herb
+  $ parse ../../../../../test/parser/010_fact.herb
   { Parsetree.imports = [];
     decls =
     [(Parsetree.PToplevelLet
@@ -143,12 +143,12 @@
            ])
       ]
     }
-  $ herbc ../../../../../test/parser/011_imports.herb
+  $ parse ../../../../../test/parser/011_imports.herb
   { Parsetree.imports =
     [{ Parsetree.repo = (Some "herb"); path = ["containers"; "map"] };
       { Parsetree.repo = None; path = ["utils"] }];
     decls = [(Parsetree.PEntry [])] }
-  $ herbc ../../../../../test/parser/012_string_literal.herb
+  $ parse ../../../../../test/parser/012_string_literal.herb
   { Parsetree.imports = [];
     decls =
     [(Parsetree.PToplevelLet ("a", (Parsetree.PString "123")));
@@ -159,7 +159,7 @@
          [(Parsetree.PString "\208\159\208\190\208\186\208\176!bye")])
       ]
     }
-  $ herbc ../../../../../test/parser/013_for_numeric.herb
+  $ parse ../../../../../test/parser/013_for_numeric.herb
   { Parsetree.imports = [];
     decls =
     [(Parsetree.PToplevelLet
@@ -180,14 +180,14 @@
            ])
       ]
     }
-  $ herbc ../../../../../test/parser/014_extern.herb
+  $ parse ../../../../../test/parser/014_extern.herb
   { Parsetree.imports = [];
     decls =
     [Parsetree.PExtern {name = "i"; typ = (Parsetree.PTypNamed "int");
        linkname = "counter"}
       ]
     }
-  $ herbc ../../../../../test/parser/015_extern_fun.herb
+  $ parse ../../../../../test/parser/015_extern_fun.herb
   { Parsetree.imports = [];
     decls =
     [Parsetree.PExtern {name = "printint";
@@ -206,5 +206,30 @@
         linkname = "sprintf"}
       ]
     }
-
-
+  $ parse ../../../../../test/parser/016_while.herb
+  { Parsetree.imports = [];
+    decls =
+    [(Parsetree.PToplevelLet
+        ("f",
+         Parsetree.PWhile {cond = (Parsetree.PIdent "x");
+           body =
+           [Parsetree.PFunCall {callee = (Parsetree.PIdent "print");
+              args = [(Parsetree.PIdent "x")]}
+             ]}));
+      (Parsetree.PEntry
+         [(Parsetree.PLet ("i", (Parsetree.PInt 0)));
+           Parsetree.PWhile {
+             cond =
+             (Parsetree.PBinOp ((Parsetree.PIdent "i"), Parsetree.PLt,
+                (Parsetree.PInt 100)));
+             body =
+             [Parsetree.PFunCall {callee = (Parsetree.PIdent "print");
+                args = [(Parsetree.PIdent "i")]};
+               (Parsetree.PAssign ((Parsetree.PIdent "i"),
+                  (Parsetree.PBinOp ((Parsetree.PIdent "i"), Parsetree.PPlus,
+                     (Parsetree.PInt 1)))
+                  ))
+               ]}
+           ])
+      ]
+    }

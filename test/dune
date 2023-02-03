@@ -1,6 +1,7 @@
 (test 
- (name herbc)
- (package herb))
+ (name herb)
+ (package herb)
+ (libraries cmdliner herb))
 
 (cram
- (deps %{bin:herbc}))
+ (deps %{bin:parse}))

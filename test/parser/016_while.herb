@@ -1,0 +1,11 @@
+let f = while x {
+    print(x)
+}
+
+entry {
+    let i = 0
+    while i < 100 {
+        print(i)
+        i := i + 1
+    }
+}
