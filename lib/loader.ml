@@ -1,3 +1,4 @@
+open Base
 open Stdio
 open Lexing
 
@@ -21,5 +22,6 @@ let parse path =
         Error msg
   in
   In_channel.with_file path ~f:parse_chan
+
 
 let load_project file = parse file

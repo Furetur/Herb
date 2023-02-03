@@ -42,8 +42,8 @@ let herbfile :=
 (* -----   Imports   ----- *)
 
 let import := located(
-  | IMPORT; repo=ID; ":"; path=separated_nonempty_list(".", ID); { { repo = Some repo; path } }
-  | IMPORT; path=separated_nonempty_list(".", ID); { { repo = None; path } }
+  | IMPORT; herbarium=ID; ":"; path=separated_nonempty_list(".", ID); { { herbarium = Some herbarium; path } }
+  | IMPORT; path=separated_nonempty_list(".", ID); { { herbarium = None; path } }
 )
 
 

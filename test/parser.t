@@ -145,8 +145,8 @@
     }
   $ parse ../../../../../test/parser/011_imports.herb
   { Parsetree.imports =
-    [{ Parsetree.repo = (Some "herb"); path = ["containers"; "map"] };
-      { Parsetree.repo = None; path = ["utils"] }];
+    [{ Parsetree.herbarium = (Some "herb"); path = ["containers"; "map"] };
+      { Parsetree.herbarium = None; path = ["utils"] }];
     decls = [(Parsetree.PEntry [])] }
   $ parse ../../../../../test/parser/012_string_literal.herb
   { Parsetree.imports = [];
