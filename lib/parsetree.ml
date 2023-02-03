@@ -50,7 +50,10 @@ and fun_literal = { formal_args : formal_arg list; body : expr }
 (* ----- Declarations ----- *)
 and raw_let_decl = string * expr [@@deriving show]
 
-type raw_top_decl = PEntry of expr_block | PToplevelLet of raw_let_decl
+type raw_top_decl =
+  | PEntry of expr_block
+  | PToplevelLet of raw_let_decl
+  | PExtern of { name : string; typ : typ; linkname : string }
 [@@deriving show]
 
 type top_decl = raw_top_decl located [@@deriving show]

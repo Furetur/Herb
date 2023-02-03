@@ -17,7 +17,7 @@
 %token COMMA "," COLON ":" SEMI ";" ARROW "->" LPAREN "(" RPAREN ")" LBRACE "{" RBRACE "}" DOT "." DOTDOT ".."
 
 // Keywords
-%token LET ENTRY IF ELSE WHILE IMPORT FOR
+%token LET ENTRY IF ELSE WHILE IMPORT FOR EXTERN
 
 
 %{ 
@@ -63,6 +63,7 @@ let toplevel_decl :=
   located (
     | ENTRY; e=expr_block; { PEntry e }
     | d=raw_let_decl; { PToplevelLet d }
+    | EXTERN; name=ID; ":"; typ=typ; "="; linkname=STRING; { PExtern { name; typ; linkname } }
   )
 
 (* ----- Expressions ----- *)

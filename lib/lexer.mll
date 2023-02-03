@@ -34,6 +34,7 @@ rule token = parse
 | "while" { WHILE }
 | "import" { IMPORT }
 | "for" { FOR }
+| "extern" { EXTERN }
 
 (* Atoms *)
 | id as name

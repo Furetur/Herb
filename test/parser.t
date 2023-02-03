@@ -180,5 +180,12 @@
            ])
       ]
     }
+  $ herbc ../../../../../test/parser/014_extern.herb
+  { Parsetree.imports = [];
+    decls =
+    [Parsetree.PExtern {name = "i"; typ = (Parsetree.PTypNamed "int");
+       linkname = "counter"}
+      ]
+    }
 
 
