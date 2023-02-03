@@ -51,8 +51,11 @@ let import := located(
 
 let named_typ := name=ID; { PTypNamed name }
 
+let signature := "("; arg_types=separated_list(",", typ); ")"; "->"; ret_typ=typ; { { arg_types; ret_typ } }
+
 let typ := located(
-  t=named_typ; { t }
+  | t=named_typ; { t }
+  | s=signature; { PTypFun s }
 ) 
 
 (* ----- Declarations ----- *)

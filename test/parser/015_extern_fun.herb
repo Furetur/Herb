@@ -1,0 +1,3 @@
+extern printint: (int) -> unit = "__print_int_"
+
+extern sprintf: (string, int, int) -> string = "sprintf"

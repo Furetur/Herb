@@ -187,5 +187,24 @@
        linkname = "counter"}
       ]
     }
+  $ herbc ../../../../../test/parser/015_extern_fun.herb
+  { Parsetree.imports = [];
+    decls =
+    [Parsetree.PExtern {name = "printint";
+       typ =
+       (Parsetree.PTypFun
+          { Parsetree.arg_types = [(Parsetree.PTypNamed "int")];
+            ret_typ = (Parsetree.PTypNamed "unit") });
+       linkname = "__print_int_"};
+      Parsetree.PExtern {name = "sprintf";
+        typ =
+        (Parsetree.PTypFun
+           { Parsetree.arg_types =
+             [(Parsetree.PTypNamed "string"); (Parsetree.PTypNamed "int");
+               (Parsetree.PTypNamed "int")];
+             ret_typ = (Parsetree.PTypNamed "string") });
+        linkname = "sprintf"}
+      ]
+    }
 
 

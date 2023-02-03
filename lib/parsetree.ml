@@ -2,8 +2,11 @@ open Loc
 
 (* -----    Types    ----- *)
 
-type raw_typ = PTypNamed of string [@@deriving show]
-type typ = raw_typ located [@@deriving show]
+type raw_typ = PTypNamed of string | PTypFun of signature [@@deriving show]
+
+and signature = {arg_types: typ list; ret_typ: typ} [@@deriving show]
+
+and typ = raw_typ located [@@deriving show]
 
 (* ----- Expressions ----- *)
 
