@@ -1,6 +1,8 @@
 open Base
 open Stdio
 open Cmdliner
+open Herb
+
 
 let input_file =
   let doc = "File" in
@@ -8,11 +10,13 @@ let input_file =
   Arg.required (Arg.pos 0 (Arg.some Arg.file) None info)
 
 let parse input_file =
-  match Herb.Loader.parse input_file with
+  let result = In_channel.with_file input_file ~f:Parser.parse in
+  match result with
   | Ok tree ->
-      let s = Herb.Parsetree.show_herbfile tree in
-      print_endline s
-  | Error s -> print_string s
+    print_endline (Parsetree.show_herbfile tree)
+  | Error (`SyntaxError loc) -> 
+    let line, col = Loc.start_line_col loc in
+    print_endline (Printf.sprintf "Syntax error at line %d column %d" line col)
 
 let parse_t = Term.(const parse $ input_file)
 

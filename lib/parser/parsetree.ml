@@ -1,12 +1,10 @@
-open Loc
-
 (* -----    Types    ----- *)
 
 type raw_typ = PTypNamed of string | PTypFun of signature [@@deriving show]
 
 and signature = {arg_types: typ list; ret_typ: typ} [@@deriving show]
 
-and typ = raw_typ located [@@deriving show]
+and typ = raw_typ Loc.located [@@deriving show]
 
 (* ----- Expressions ----- *)
 
@@ -28,7 +26,7 @@ type binop =
   | PGt
 [@@deriving show]
 
-type expr = raw_expr located [@@deriving show]
+type expr = raw_expr Loc.located [@@deriving show]
 
 and raw_expr =
   | PInt of int
@@ -59,12 +57,12 @@ type raw_top_decl =
   | PExtern of { name : string; typ : typ; linkname : string }
 [@@deriving show]
 
-type top_decl = raw_top_decl located [@@deriving show]
+type top_decl = raw_top_decl Loc.located [@@deriving show]
 
 (* ----- Imports ----- *)
 
 type raw_import = { herbarium : string option; path : string list } [@@deriving show]
-type import = raw_import located [@@deriving show]
+type import = raw_import Loc.located [@@deriving show]
 
 (* ----- File ----- *)
 

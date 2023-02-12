@@ -1,0 +1,7 @@
+(menhir
+ (modules parser_)
+ (flags --explain --dump)
+ (infer true))
+
+(ocamllex
+ (modules lexer_))

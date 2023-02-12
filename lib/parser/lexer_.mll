@@ -1,8 +1,8 @@
 {
   open Lexing
-  open Parser
+  open Parser_
 
-  exception Error of string
+  exception Error
 
   let next_line lexbuf =
     let pos = lexbuf.lex_curr_p in
@@ -79,6 +79,5 @@ rule token = parse
 | '.'  { DOT }
 | eof  { EOF }
 
-| _
-    { raise (Error (Printf.sprintf "At offset %d: unexpected character.\n" (Lexing.lexeme_start lexbuf))) }
+| _ { raise Error }
 

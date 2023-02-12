@@ -22,7 +22,6 @@
 
 %{ 
   open Parsetree 
-  open Loc
 %}
 
 %start <Parsetree.herbfile> herbfile
@@ -179,4 +178,4 @@ let unary_op :=
    semantic value of type ['a] as a value of type ['a located]. *)
 
 let located(x) ==
-  ~ = x; { { loc = $loc; value = x } }
+  ~ = x; { { Loc.loc = $loc; Loc.value = x } }
