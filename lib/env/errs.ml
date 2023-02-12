@@ -21,6 +21,6 @@ let show_err { cu; loc; kind; title; text } =
     Printf.sprintf "File '%s', line %d, column %d:\n[%s] %s" path line col
       (show_kind kind) title
   in
-  if String.(text = "") then err else err ^ "\n\n" ^ text ^ "\n\n"
+  if String.(text = "") then err else err ^ "\n" ^ text
 
-let show_errs errs = String.concat ~sep:"\n" (List.map errs ~f:show_err)
+let show_errs errs = String.concat ~sep:"\n\n" (List.map errs ~f:show_err)
