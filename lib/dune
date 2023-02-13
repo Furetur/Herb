@@ -3,6 +3,6 @@
 (library
  (preprocess
   (pps ppx_deriving.show ppx_deriving.ord ppx_import))
- (libraries base stdio fpath)
+ (libraries base stdio fpath logs logs.fmt logs.cli fmt fmt.tty)
  (public_name herb)
  (name herb))

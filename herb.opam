@@ -12,10 +12,13 @@ bug-reports: "https://github.com/username/reponame/issues"
 depends: [
   "ocaml"
   "dune" {>= "3.4"}
+  "base-unix"
   "base"
   "stdio"
   "menhir"
   "cmdliner"
+  "fmt"
+  "logs"
   "odoc" {with-doc}
 ]
 build: [

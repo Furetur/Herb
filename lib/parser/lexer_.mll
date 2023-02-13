@@ -39,7 +39,7 @@ rule token = parse
 (* Atoms *)
 | id as name
     { ID (name) }
-| digit+ as i
+| ('-'? digit+) as i
     { INT (int_of_string i) }
 | '"' (string_literal_char* as s) '"'
     { STRING ( s ) }
@@ -69,7 +69,6 @@ rule token = parse
 (* Punctuation *)
 | ','  { COMMA }
 | ':'  { COLON }
-| ';'  { SEMI }
 | "->" { ARROW }
 | '('  { LPAREN }
 | ')'  { RPAREN }

@@ -6,7 +6,7 @@
 %token <string> STRING
 
 
-// Operators
+// Operators 
 %token DEF "="
 %token ASSIGN ":="
 %token PLUS "+" MINUS "-" MUL "*" DIV "/" MOD "%"
@@ -14,7 +14,7 @@
 %token LT "<" LTE "<=" EQ "==" NEQ "!=" GTE ">=" GT ">"
 
 // Punctuation
-%token COMMA "," COLON ":" SEMI ";" ARROW "->" LPAREN "(" RPAREN ")" LBRACE "{" RBRACE "}" DOT "." DOTDOT ".."
+%token COMMA "," COLON ":" ARROW "->" LPAREN "(" RPAREN ")" LBRACE "{" RBRACE "}" DOT "." DOTDOT ".."
 
 // Keywords
 %token LET ENTRY IF ELSE WHILE IMPORT FOR EXTERN
@@ -169,7 +169,6 @@ let binop_mul_expr :=
   | e=unop_expr; { e }
 
 let unary_op := 
-  | "-"; { PNeg }
   | "!"; { PNot }
 
 (* -------------------------------------------------------------------------- *)

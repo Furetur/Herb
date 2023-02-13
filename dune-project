@@ -20,7 +20,7 @@
  (name herb)
  (synopsis "Herb compiler")
  (description "A compiler for the herb programming language")
- (depends ocaml dune base stdio menhir cmdliner)
+ (depends ocaml dune base-unix base stdio menhir cmdliner fmt logs)
  
  (tags
   (topics "to describe" your project)))

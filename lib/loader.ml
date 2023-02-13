@@ -14,16 +14,6 @@ end)
 
 open P
 
-let fail err = return (Error [ err ])
-let return_ok x = return (Ok x)
-
-let rec fold_errs xs f =
-  match xs with
-  | [] -> return_ok ()
-  | x :: xs -> (
-      let* r = f x in
-      match r with Ok _ -> fold_errs xs f | Error err -> return (Error err))
-
 let put_in_tbl mod_desc m =
   let* s = access in
   let tbl = Map.set s.tbl ~key:mod_desc ~data:m in
@@ -44,6 +34,15 @@ let add_err err =
 let add_syntax_err cu loc =
   add_err { cu; loc; kind = SyntaxError; title = "Illegal syntax"; text = "" }
 
+let show_import import =
+  let { Loc.value = { herbarium; path }; _ } = import in
+  let path = String.concat ~sep:"." path in
+  match herbarium with
+  | Some herbarium -> Printf.sprintf "%s:%s" herbarium path
+  | None -> path
+
+let show_cu_path cu = Fpath.to_string (cu_path cu)
+
 let resolve_import cu import =
   let { Loc.loc; Loc.value = { herbarium; path } } = import in
   let* { proj; _ } = access in
@@ -61,6 +60,7 @@ let resolve_import cu import =
 
 let parse_cu cu =
   let path = Fpath.to_string (cu_path cu) in
+  Logs.debug (fun m -> m "Parsing %s" path);
   try In_channel.with_file ~f:Parser.parse path
   with Sys_error err -> Error (`FileError err)
 
@@ -69,6 +69,9 @@ let rec load_import from_cu import =
   let* imported_cu = resolve_import from_cu import in
   match imported_cu with
   | Some imported_cu ->
+      Logs.debug (fun m ->
+          m "Import resolved: '%s' -> %s (from %s)" (show_import import)
+            (show_cu_path imported_cu) (show_cu_path from_cu));
       let not = Caml.Bool.not in
       let* quit = has_errors in
       let* already_loaded = is_already_loaded imported_cu in
@@ -89,14 +92,19 @@ let rec load_import from_cu import =
         else return ()
       in
       return (Some imported_cu)
-  | _ -> return None
+  | _ ->
+      Logs.debug (fun m ->
+          m "Import unresolved '%s' (from %s)" (show_import import)
+            (show_cu_path from_cu));
+      return None
 
 and load_parsed_cu cu tree =
   let imports = tree.Parsetree.imports in
   (* Avoid revisiting this module *)
   let* _ = put_in_tbl cu { cu; imports = []; tree } in
   let* imports = many imports ~f:(load_import cu) in
-  put_in_tbl cu { cu; imports = List.filter_opt imports; tree } 
+  Logs.debug (fun m -> m "Loaded %s" (show_cu_path cu));
+  put_in_tbl cu { cu; imports = List.filter_opt imports; tree }
 
 let load_entry_cu cu =
   match parse_cu cu with
@@ -110,6 +118,10 @@ type loading_result =
   | Loaded of int
 
 let load_project proj =
+  Logs.info (fun m -> m "Loading project");
+  Logs.info (fun m -> m "\tentry at %s" (show_cu_path proj.entry));
+  Logs.info (fun m -> m "\troot at %s" (Fpath.to_string proj.root));
+
   let s = { proj; errs = []; tbl = Map.empty (module Proj.Cu_comparator) } in
   let s, res = run_state (load_entry_cu proj.entry) ~init:s in
   match (res, s.errs) with
