@@ -9,8 +9,17 @@ let compile path =
   | Ok entry -> (
       let proj = Proj.proj_at_cwd ~entry herbariums in
       match Loader.load_project proj with
-      | Loaded x -> print_endline (Printf.sprintf "Loaded %d modules" x)
+      | Loaded _ -> print_endline (Printf.sprintf "Loaded")
       | Errors x -> print_endline (Errs.show_errs x)
-      | EntryFileError (p, s) ->
+      | EntryFileError (_, s) ->
           print_endline
-            (Printf.sprintf "Path not valid: %s %s" s (Fpath.to_string p)))
+            Errs.(
+              show_simple_err ImportError ~title:"Could not open file" ~text:s)
+      | DependencyCycle cycle ->
+          let title = "Dependency cycle detected" in
+          let cycle =
+            String.concat ~sep:"->\n  "
+              (List.map cycle ~f:(fun cu -> Fpath.to_string (Proj.cu_path cu)))
+          in
+
+          print_endline Errs.(show_simple_err ImportError ~title ~text:cycle))

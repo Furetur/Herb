@@ -11,7 +11,7 @@ let cu root p =
   assert (Fpath.is_file_path p);
   let p = if Fpath.is_abs p then p else Fpath.(root // p) in
   let p = Fpath.set_ext herb_extention p in
-  let p = Fpath.normalize p in 
+  let p = Fpath.normalize p in
   p
 
 let proj_at_cwd ~entry herbariums =
@@ -38,6 +38,7 @@ let resolve_abs_import proj ~herbarium ~path =
   | None -> Error `UnknownHerbarium
 
 let cu_path p = p
+let cu_eq = Fpath.equal
 
 module Cu_comparator = struct
   type t = cu

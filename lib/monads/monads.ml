@@ -32,15 +32,14 @@ end = struct
 
   (* Combinators *)
 
-  let access s = s, s
-  let put s _ = s, ()
-  let return r s = s, r
+  let access s = (s, s)
+  let put s _ = (s, ())
+  let return r s = (s, r)
 
   let bind t f s =
     let s, r = t s in
     let f_t = f r in
     f_t s
-  ;;
 
   let ( let* ) = bind
 
@@ -49,7 +48,6 @@ end = struct
   let ( *> ) a b =
     let* _ = a in
     b
-  ;;
 
   let ignore t = t *> return ()
 
@@ -57,7 +55,6 @@ end = struct
     let* a = a in
     let* _ = b in
     return a
-  ;;
 
   let many xs ~f =
     let rec helper acc xs =
@@ -65,11 +62,10 @@ end = struct
       match xs with
       | [] -> return (List.rev ys)
       | h :: tl ->
-        let* y = f h in
-        helper (return (y :: ys)) tl
+          let* y = f h in
+          helper (return (y :: ys)) tl
     in
     helper (return []) xs
-  ;;
 
   let fold_state xs ~f =
     let rec helper acc = function
@@ -77,5 +73,4 @@ end = struct
       | h :: tl -> helper (acc *> f h) tl
     in
     helper (return ()) xs
-  ;;
 end

@@ -43,6 +43,8 @@ let show_import import =
 
 let show_cu_path cu = Fpath.to_string (cu_path cu)
 
+(* --- Pass --- *)
+
 let resolve_import cu import =
   let { Loc.loc; Loc.value = { herbarium; path } } = import in
   let* { proj; _ } = access in
@@ -112,19 +114,39 @@ let load_entry_cu cu =
   | Error (`SyntaxError loc) -> add_syntax_err cu loc *> return (Ok ())
   | Error (`FileError err) -> return (Error (`FileError err))
 
+(* --- Result --- *)
+
 type loading_result =
   | EntryFileError of Fpath.t * string
+  | DependencyCycle of cu list
   | Errors of Errs.err list
-  | Loaded of int
+  | Loaded of module_tbl * cu list
 
-let load_project proj =
+let load_project proj : loading_result =
   Logs.info (fun m -> m "Loading project");
   Logs.info (fun m -> m "\tentry at %s" (show_cu_path proj.entry));
   Logs.info (fun m -> m "\troot at %s" (Fpath.to_string proj.root));
 
   let s = { proj; errs = []; tbl = Map.empty (module Proj.Cu_comparator) } in
   let s, res = run_state (load_entry_cu proj.entry) ~init:s in
+  let tbl = s.tbl in
   match (res, s.errs) with
   | Error (`FileError err), _ -> EntryFileError (cu_path proj.entry, err)
-  | Ok (), [] -> Loaded (Map.length s.tbl)
+  | Ok (), [] -> (
+      let get_imports cu =
+        Option.(
+          value_or_thunk
+            (Map.find tbl cu >>| fun m -> m.imports)
+            ~default:(fun () -> []))
+      in
+      Logs.debug (fun m -> m "Sorting a graph of %d modules" (Map.length tbl));
+      match Tsort.tsort get_imports proj.entry with
+      | Ok schedule ->
+          Logs.info (fun m ->
+              m "Module schedule: %s"
+                (String.concat ~sep:", " (List.map schedule ~f:show_cu_path)));
+          Loaded (tbl, schedule)
+      | Error cycle ->
+          Logs.info (fun m -> m "Dependency cycle detected");
+          DependencyCycle cycle)
   | Ok (), errs -> Errors errs

@@ -23,4 +23,9 @@ let show_err { cu; loc; kind; title; text } =
   in
   if String.(text = "") then err else err ^ "\n" ^ text
 
+let show_simple_err kind ~title ~text =
+  let head = Printf.sprintf "[%s] %s" (show_kind kind) title in
+  let body = if String.(text = "") then "" else "\n\n" ^ text in
+  head ^ body
+
 let show_errs errs = String.concat ~sep:"\n\n" (List.map errs ~f:show_err)

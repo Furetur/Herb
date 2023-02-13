@@ -1,9 +1,7 @@
 (* -----    Types    ----- *)
 
 type raw_typ = PTypNamed of string | PTypFun of signature [@@deriving show]
-
-and signature = {arg_types: typ list; ret_typ: typ} [@@deriving show]
-
+and signature = { arg_types : typ list; ret_typ : typ } [@@deriving show]
 and typ = raw_typ Loc.located [@@deriving show]
 
 (* ----- Expressions ----- *)
@@ -61,7 +59,9 @@ type top_decl = raw_top_decl Loc.located [@@deriving show]
 
 (* ----- Imports ----- *)
 
-type raw_import = { herbarium : string option; path : string list } [@@deriving show]
+type raw_import = { herbarium : string option; path : string list }
+[@@deriving show]
+
 type import = raw_import Loc.located [@@deriving show]
 
 (* ----- File ----- *)
