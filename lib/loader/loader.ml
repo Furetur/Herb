@@ -6,9 +6,9 @@ open Parsetree
 
 type loaded_module = { cu : cu; imports : cu list; tree : Parsetree.herbfile }
 type module_tbl = (cu, loaded_module, Cu_comparator.comparator_witness) Map.t
-type loader_state = { proj : proj; tbl : module_tbl; errs : err list }
+type loader_state = { proj : proj; tbl : module_tbl }
 
-module P = Monads.StateMonad (struct
+module P = Passes.Pass (struct
   type t = loader_state
 end)
 
@@ -22,14 +22,6 @@ let put_in_tbl mod_desc m =
 let is_already_loaded m =
   let* { tbl; _ } = access in
   return (Map.mem tbl m)
-
-let has_errors =
-  let* { errs; _ } = access in
-  return (List.length errs <> 0)
-
-let add_err err =
-  let* s = access in
-  put { s with errs = err :: s.errs }
 
 let add_syntax_err cu loc =
   add_err { cu; loc; kind = SyntaxError; title = "Illegal syntax"; text = "" }
@@ -75,7 +67,7 @@ let rec load_import from_cu import =
           m "Import resolved: '%s' -> %s (from %s)" (show_import import)
             (show_cu_path imported_cu) (show_cu_path from_cu));
       let not = Caml.Bool.not in
-      let* quit = has_errors in
+      let* quit = has_errs in
       let* already_loaded = is_already_loaded imported_cu in
       let* _ =
         if (not quit) && not already_loaded then
@@ -127,10 +119,10 @@ let load_project proj : loading_result =
   Logs.info (fun m -> m "\tentry at %s" (show_cu_path proj.entry));
   Logs.info (fun m -> m "\troot at %s" (Fpath.to_string proj.root));
 
-  let s = { proj; errs = []; tbl = Map.empty (module Proj.Cu_comparator) } in
-  let s, res = run_state (load_entry_cu proj.entry) ~init:s in
+  let s = { proj; tbl = Map.empty (module Proj.Cu_comparator) } in
+  let s, errs, res = run_pass (load_entry_cu proj.entry) ~init:s in
   let tbl = s.tbl in
-  match (res, s.errs) with
+  match (res, errs) with
   | Error (`FileError err), _ -> EntryFileError (cu_path proj.entry, err)
   | Ok (), [] -> (
       let get_imports cu =
