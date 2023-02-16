@@ -63,10 +63,18 @@ let raw_let_decl := LET; name=ID; "="; e=expr; { (name, e) }
 
 let toplevel_decl :=
   located (
-    | ENTRY; e=expr_block; { PEntry e }
+    | ENTRY; e=block; { PEntry e }
     | d=raw_let_decl; { PToplevelLet d }
     | EXTERN; name=ID; ":"; typ=typ; "="; linkname=STRING; { PExtern { name; typ; linkname } }
   )
+
+(* ----- Statements ----- *)
+
+let stmt := 
+  | located( 
+      d=raw_let_decl; { PLet d }
+    )
+  | e=expr; { { e with Loc.value = (PExprStmt e.Loc.value) } }
 
 (* ----- Expressions ----- *)
 
@@ -102,15 +110,14 @@ let primary_expr :=
 let expr := 
   | e=binop_expr; { e }
   | located(   
-    | exprs=expr_block; { PExprBlock exprs }
-    | d=raw_let_decl; { PLet d }
-    | IF; cond=expr; then_=expr_block; { PIf {cond; then_; else_=[]} }
-    | IF; cond=expr; then_=expr_block; ELSE; else_=expr_block; { PIf {cond; then_; else_} }
-    | WHILE; cond=expr; body=expr_block; { PWhile { cond; body } }
-    | FOR; i=ID; "="; start_=expr; ".."; end_=expr; body=expr_block; { PFor { i; start_; end_; body } } 
+    | exprs=block; { PBlock exprs }
+    | IF; cond=expr; then_=block; { PIf {cond; then_; else_=[]} }
+    | IF; cond=expr; then_=block; ELSE; else_=block; { PIf {cond; then_; else_} }
+    | WHILE; cond=expr; body=block; { PWhile { cond; body } }
+    | FOR; i=ID; "="; start_=expr; ".."; end_=expr; body=block; { PFor { i; start_; end_; body } } 
   )
 
-let expr_block := LBRACE; exprs=expr*; RBRACE; { exprs }
+let block := LBRACE; exprs=stmt*; RBRACE; { exprs }
 
 (* -- Operators -- *)
 

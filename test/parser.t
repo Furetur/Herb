@@ -6,10 +6,11 @@
   { Parsetree.imports = [];
     decls =
     [(Parsetree.PEntry
-        [(Parsetree.PBinOp ((Parsetree.PInt 1), Parsetree.PPlus,
-            (Parsetree.PBinOp ((Parsetree.PInt 2), Parsetree.PMul,
-               (Parsetree.PInt 3)))
-            ))
+        [(Parsetree.PExprStmt
+            (Parsetree.PBinOp ((Parsetree.PInt 1), Parsetree.PPlus,
+               (Parsetree.PBinOp ((Parsetree.PInt 2), Parsetree.PMul,
+                  (Parsetree.PInt 3)))
+               )))
           ])
       ]
     }
@@ -17,21 +18,22 @@
   { Parsetree.imports = [];
     decls =
     [(Parsetree.PEntry
-        [(Parsetree.PBinOp (
+        [(Parsetree.PExprStmt
             (Parsetree.PBinOp (
-               (Parsetree.PBinOp ((Parsetree.PInt 1), Parsetree.PPlus,
-                  (Parsetree.PBinOp ((Parsetree.PInt 2), Parsetree.PMul,
-                     (Parsetree.PInt 3)))
-                  )),
-               Parsetree.PPlus,
                (Parsetree.PBinOp (
+                  (Parsetree.PBinOp ((Parsetree.PInt 1), Parsetree.PPlus,
+                     (Parsetree.PBinOp ((Parsetree.PInt 2), Parsetree.PMul,
+                        (Parsetree.PInt 3)))
+                     )),
+                  Parsetree.PPlus,
                   (Parsetree.PBinOp (
-                     (Parsetree.PBinOp ((Parsetree.PInt 8), Parsetree.PPlus,
-                        (Parsetree.PInt 9))),
-                     Parsetree.PDiv, (Parsetree.PInt 16))),
-                  Parsetree.PMod, (Parsetree.PInt 4)))
-               )),
-            Parsetree.PMinus, (Parsetree.PInt 5)))
+                     (Parsetree.PBinOp (
+                        (Parsetree.PBinOp ((Parsetree.PInt 8), Parsetree.PPlus,
+                           (Parsetree.PInt 9))),
+                        Parsetree.PDiv, (Parsetree.PInt 16))),
+                     Parsetree.PMod, (Parsetree.PInt 4)))
+                  )),
+               Parsetree.PMinus, (Parsetree.PInt 5))))
           ])
       ]
     }
@@ -39,12 +41,13 @@
   { Parsetree.imports = [];
     decls =
     [(Parsetree.PEntry
-        [(Parsetree.PAssign ((Parsetree.PIdent "x"),
-            (Parsetree.PAssign ((Parsetree.PIdent "y"),
-               (Parsetree.PBinOp ((Parsetree.PIdent "z"), Parsetree.PPlus,
-                  (Parsetree.PIdent "w")))
-               ))
-            ))
+        [(Parsetree.PExprStmt
+            (Parsetree.PAssign ((Parsetree.PIdent "x"),
+               (Parsetree.PAssign ((Parsetree.PIdent "y"),
+                  (Parsetree.PBinOp ((Parsetree.PIdent "z"), Parsetree.PPlus,
+                     (Parsetree.PIdent "w")))
+                  ))
+               )))
           ])
       ]
     }
@@ -63,11 +66,13 @@
                (Parsetree.PBinOp ((Parsetree.PIdent "a"), Parsetree.PMod,
                   (Parsetree.PInt 2))),
                Parsetree.PEq, (Parsetree.PInt 0)));
-            then_ = [(Parsetree.PIdent "true")];
-            else_ = [(Parsetree.PIdent "false")]}));
+            then_ = [(Parsetree.PExprStmt (Parsetree.PIdent "true"))];
+            else_ = [(Parsetree.PExprStmt (Parsetree.PIdent "false"))]}));
       (Parsetree.PEntry
-         [Parsetree.PIf {cond = (Parsetree.PIdent "b");
-            then_ = [(Parsetree.PInt 0)]; else_ = [(Parsetree.PInt 1)]}
+         [(Parsetree.PExprStmt
+             Parsetree.PIf {cond = (Parsetree.PIdent "b");
+               then_ = [(Parsetree.PExprStmt (Parsetree.PInt 0))];
+               else_ = [(Parsetree.PExprStmt (Parsetree.PInt 1))]})
            ])
       ]
     }
@@ -79,8 +84,9 @@
          Parsetree.PFunCall {callee = (Parsetree.PIdent "f");
            args = [(Parsetree.PInt 1)]}));
       (Parsetree.PEntry
-         [Parsetree.PFunCall {callee = (Parsetree.PIdent "g");
-            args = [(Parsetree.PInt 15)]}
+         [(Parsetree.PExprStmt
+             Parsetree.PFunCall {callee = (Parsetree.PIdent "g");
+               args = [(Parsetree.PInt 15)]})
            ])
       ]
     }
@@ -93,24 +99,19 @@
             { Parsetree.formal_args = [("x", (Parsetree.PTypNamed "int"))];
               body = (Parsetree.PIdent "x") })));
       (Parsetree.PEntry
-         [Parsetree.PFunCall {
-            callee =
-            (Parsetree.PFunLiteral
-               { Parsetree.formal_args = [("y", (Parsetree.PTypNamed "int"))];
-                 body = (Parsetree.PIdent "y") });
-            args = [(Parsetree.PInt 1)]}
+         [(Parsetree.PExprStmt
+             Parsetree.PFunCall {
+               callee =
+               (Parsetree.PFunLiteral
+                  { Parsetree.formal_args =
+                    [("y", (Parsetree.PTypNamed "int"))];
+                    body = (Parsetree.PIdent "y") });
+               args = [(Parsetree.PInt 1)]})
            ])
       ]
     }
   $ parse ../../../../../test/parser/009_local_let.herb
-  { Parsetree.imports = [];
-    decls =
-    [(Parsetree.PEntry
-        [(Parsetree.PLet ("a", (Parsetree.PInt 1)));
-          (Parsetree.PLet ("b", (Parsetree.PLet ("c", (Parsetree.PInt 2)))));
-          (Parsetree.PIdent "a")])
-      ]
-    }
+  Syntax error at line 3 column 12
   $ parse ../../../../../test/parser/010_fact.herb
   { Parsetree.imports = [];
     decls =
@@ -123,23 +124,25 @@
                 cond =
                 (Parsetree.PBinOp ((Parsetree.PIdent "x"), Parsetree.PEq,
                    (Parsetree.PInt 0)));
-                then_ = [(Parsetree.PInt 1)];
+                then_ = [(Parsetree.PExprStmt (Parsetree.PInt 1))];
                 else_ =
-                [(Parsetree.PBinOp ((Parsetree.PIdent "x"), Parsetree.PMul,
-                    Parsetree.PFunCall {callee = (Parsetree.PIdent "fact");
-                      args =
-                      [(Parsetree.PBinOp ((Parsetree.PIdent "x"),
-                          Parsetree.PMinus, (Parsetree.PInt 1)))
-                        ]}
-                    ))
+                [(Parsetree.PExprStmt
+                    (Parsetree.PBinOp ((Parsetree.PIdent "x"), Parsetree.PMul,
+                       Parsetree.PFunCall {callee = (Parsetree.PIdent "fact");
+                         args =
+                         [(Parsetree.PBinOp ((Parsetree.PIdent "x"),
+                             Parsetree.PMinus, (Parsetree.PInt 1)))
+                           ]}
+                       )))
                   ]}
               })));
       (Parsetree.PEntry
-         [Parsetree.PFunCall {callee = (Parsetree.PIdent "print");
-            args =
-            [Parsetree.PFunCall {callee = (Parsetree.PIdent "fact");
-               args = [(Parsetree.PInt 10)]}
-              ]}
+         [(Parsetree.PExprStmt
+             Parsetree.PFunCall {callee = (Parsetree.PIdent "print");
+               args =
+               [Parsetree.PFunCall {callee = (Parsetree.PIdent "fact");
+                  args = [(Parsetree.PInt 10)]}
+                 ]})
            ])
       ]
     }
@@ -156,7 +159,9 @@
          ("b",
           (Parsetree.PString "\208\159\209\128\208\184\208\178\208\181\209\130")));
       (Parsetree.PEntry
-         [(Parsetree.PString "\208\159\208\190\208\186\208\176!bye")])
+         [(Parsetree.PExprStmt
+             (Parsetree.PString "\208\159\208\190\208\186\208\176!bye"))
+           ])
       ]
     }
   $ parse ../../../../../test/parser/013_for_numeric.herb
@@ -167,16 +172,19 @@
          Parsetree.PFor {i = "i"; start_ = (Parsetree.PInt 1);
            end_ = (Parsetree.PInt 10);
            body =
-           [Parsetree.PFunCall {callee = (Parsetree.PIdent "print");
-              args = [(Parsetree.PIdent "i")]}
+           [(Parsetree.PExprStmt
+               Parsetree.PFunCall {callee = (Parsetree.PIdent "print");
+                 args = [(Parsetree.PIdent "i")]})
              ]}));
       (Parsetree.PEntry
-         [Parsetree.PFor {i = "j"; start_ = (Parsetree.PInt 1);
-            end_ = (Parsetree.PInt 100);
-            body =
-            [Parsetree.PFunCall {callee = (Parsetree.PIdent "call");
-               args = [(Parsetree.PIdent "j")]}
-              ]}
+         [(Parsetree.PExprStmt
+             Parsetree.PFor {i = "j"; start_ = (Parsetree.PInt 1);
+               end_ = (Parsetree.PInt 100);
+               body =
+               [(Parsetree.PExprStmt
+                   Parsetree.PFunCall {callee = (Parsetree.PIdent "call");
+                     args = [(Parsetree.PIdent "j")]})
+                 ]})
            ])
       ]
     }
@@ -213,23 +221,27 @@
         ("f",
          Parsetree.PWhile {cond = (Parsetree.PIdent "x");
            body =
-           [Parsetree.PFunCall {callee = (Parsetree.PIdent "print");
-              args = [(Parsetree.PIdent "x")]}
+           [(Parsetree.PExprStmt
+               Parsetree.PFunCall {callee = (Parsetree.PIdent "print");
+                 args = [(Parsetree.PIdent "x")]})
              ]}));
       (Parsetree.PEntry
          [(Parsetree.PLet ("i", (Parsetree.PInt 0)));
-           Parsetree.PWhile {
-             cond =
-             (Parsetree.PBinOp ((Parsetree.PIdent "i"), Parsetree.PLt,
-                (Parsetree.PInt 100)));
-             body =
-             [Parsetree.PFunCall {callee = (Parsetree.PIdent "print");
-                args = [(Parsetree.PIdent "i")]};
-               (Parsetree.PAssign ((Parsetree.PIdent "i"),
-                  (Parsetree.PBinOp ((Parsetree.PIdent "i"), Parsetree.PPlus,
-                     (Parsetree.PInt 1)))
-                  ))
-               ]}
+           (Parsetree.PExprStmt
+              Parsetree.PWhile {
+                cond =
+                (Parsetree.PBinOp ((Parsetree.PIdent "i"), Parsetree.PLt,
+                   (Parsetree.PInt 100)));
+                body =
+                [(Parsetree.PExprStmt
+                    Parsetree.PFunCall {callee = (Parsetree.PIdent "print");
+                      args = [(Parsetree.PIdent "i")]});
+                  (Parsetree.PExprStmt
+                     (Parsetree.PAssign ((Parsetree.PIdent "i"),
+                        (Parsetree.PBinOp ((Parsetree.PIdent "i"),
+                           Parsetree.PPlus, (Parsetree.PInt 1)))
+                        )))
+                  ]})
            ])
       ]
     }

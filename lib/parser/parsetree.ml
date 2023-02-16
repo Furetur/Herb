@@ -35,29 +35,37 @@ and raw_expr =
   | PUnOp of unop * expr
   | PBinOp of expr * binop * expr
   | PFunCall of { callee : expr; args : expr list }
-  | PExprBlock of expr_block
-  | PLet of raw_let_decl
-  | PIf of { cond : expr; then_ : expr_block; else_ : expr_block }
-  | PWhile of { cond : expr; body : expr_block }
-  | PFor of { i : string; start_ : expr; end_ : expr; body : expr_block }
+  | PBlock of block
+  | PIf of { cond : expr; then_ : block; else_ : block }
+  | PWhile of { cond : expr; body : block }
+  | PFor of { i : string; start_ : expr; end_ : expr; body : block }
 [@@deriving show]
 
-and expr_block = expr list
+and block = stmt list
 and formal_arg = string * typ
 and fun_literal = { formal_args : formal_arg list; body : expr }
 
 (* ----- Declarations ----- *)
 and raw_let_decl = string * expr [@@deriving show]
 
+(* ----- Statements ----- *)
+and raw_stmt =
+  | PLet of raw_let_decl
+  | PExprStmt of raw_expr
+  [@@deriving show]
+
+and stmt = raw_stmt Loc.located [@@deriving show]
+
+(* ----- Top level ----- *)
 type raw_top_decl =
-  | PEntry of expr_block
+  | PEntry of block
   | PToplevelLet of raw_let_decl
   | PExtern of { name : string; typ : typ; linkname : string }
 [@@deriving show]
 
 type top_decl = raw_top_decl Loc.located [@@deriving show]
 
-(* ----- Imports ----- *)
+(* - Imports - *)
 
 type raw_import = { herbarium : string option; path : string list }
 [@@deriving show]
