@@ -4,7 +4,12 @@ open Proj
 open Errs
 open Parsetree
 
-type loaded_module = { cu : cu; imports : cu list; tree : Parsetree.herbfile }
+type loaded_module = {
+  cu : cu;
+  imports : (string, cu, String.comparator_witness) Map.t;
+  tree : Parsetree.herbfile;
+}
+
 type module_tbl = (cu, loaded_module, Cu_comparator.comparator_witness) Map.t
 type loader_state = { proj : proj; tbl : module_tbl }
 
@@ -37,14 +42,19 @@ let show_cu_path cu = Fpath.to_string (cu_path cu)
 
 (* --- Pass --- *)
 
+let import_alias import =
+  let { Loc.value = { path; _ }; _ } = import in
+  List.last_exn path
+
 let resolve_import cu import =
   let { Loc.loc; Loc.value = { herbarium; path } } = import in
+  let alias = import_alias import in
   let* { proj; _ } = access in
   match herbarium with
-  | None -> return (Some (Proj.resolve_rel_import proj ~path))
+  | None -> return (Some (alias, Proj.resolve_rel_import proj ~path))
   | Some herbarium -> (
       match Proj.resolve_abs_import proj ~herbarium ~path with
-      | Ok cu -> return (Some cu)
+      | Ok cu -> return (Some (alias, cu))
       | Error `UnknownHerbarium ->
           let msg = Printf.sprintf "Unknown herbarium '%s'" herbarium in
           let* _ =
@@ -62,7 +72,7 @@ let rec load_import from_cu import =
   let { Loc.loc; _ } = import in
   let* imported_cu = resolve_import from_cu import in
   match imported_cu with
-  | Some imported_cu ->
+  | Some (alias, imported_cu) ->
       Logs.debug (fun m ->
           m "Import resolved: '%s' -> %s (from %s)" (show_import import)
             (show_cu_path imported_cu) (show_cu_path from_cu));
@@ -85,7 +95,7 @@ let rec load_import from_cu import =
                 }
         else return ()
       in
-      return (Some imported_cu)
+      return (Some (alias, imported_cu))
   | _ ->
       Logs.debug (fun m ->
           m "Import unresolved '%s' (from %s)" (show_import import)
@@ -93,12 +103,35 @@ let rec load_import from_cu import =
       return None
 
 and load_parsed_cu cu tree =
-  let imports = tree.Parsetree.imports in
+  let import_nodes = tree.Parsetree.imports in
   (* Avoid revisiting this module *)
-  let* _ = put_in_tbl cu { cu; imports = []; tree } in
-  let* imports = many imports ~f:(load_import cu) in
+  let empty_tbl = Map.empty (module String) in
+  let* _ = put_in_tbl cu { cu; imports = empty_tbl; tree } in
+  let* imports = many import_nodes ~f:(load_import cu) in
   Logs.debug (fun m -> m "Loaded %s" (show_cu_path cu));
-  put_in_tbl cu { cu; imports = List.filter_opt imports; tree }
+  let* imports =
+    match Map.of_alist (module String) (List.filter_opt imports) with
+    | `Duplicate_key alias ->
+        let { Loc.loc; _ } =
+          List.find_exn import_nodes ~f:(fun imp ->
+              String.(import_alias imp = alias))
+        in
+        let* _ =
+          add_err
+            {
+              cu;
+              loc;
+              kind = SyntaxError;
+              title =
+                Printf.sprintf "Import alias '%s' is declared multiple times"
+                  alias;
+              text = "";
+            }
+        in
+        return empty_tbl
+    | `Ok map -> return map
+  in
+  put_in_tbl cu { cu; imports; tree }
 
 let load_entry_cu cu =
   match parse_cu cu with
@@ -108,11 +141,16 @@ let load_entry_cu cu =
 
 (* --- Result --- *)
 
+type schedule = {
+  lib_modules : loaded_module list;
+  entry_module : loaded_module;
+}
+
 type loading_result =
   | EntryFileError of Fpath.t * string
   | DependencyCycle of cu list
   | Errors of Errs.err list
-  | Loaded of module_tbl * cu list
+  | Loaded of schedule
 
 let load_project proj : loading_result =
   Logs.info (fun m -> m "Loading project");
@@ -128,7 +166,7 @@ let load_project proj : loading_result =
       let get_imports cu =
         Option.(
           value_or_thunk
-            (Map.find tbl cu >>| fun m -> m.imports)
+            (Map.find tbl cu >>| fun m -> Map.data m.imports)
             ~default:(fun () -> []))
       in
       Logs.debug (fun m -> m "Sorting a graph of %d modules" (Map.length tbl));
@@ -137,7 +175,14 @@ let load_project proj : loading_result =
           Logs.info (fun m ->
               m "Module schedule: %s"
                 (String.concat ~sep:", " (List.map schedule ~f:show_cu_path)));
-          Loaded (tbl, schedule)
+          let libs =
+            List.filter schedule ~f:(fun cu ->
+                Caml.Bool.not (equal_cu cu proj.entry))
+          in
+          let libs = List.map libs ~f:(fun cu -> Map.find_exn tbl cu) in
+          let entry = Map.find_exn tbl proj.entry in
+          let schedule = { lib_modules = libs; entry_module = entry } in
+          Loaded schedule
       | Error cycle ->
           Logs.info (fun m -> m "Dependency cycle detected");
           DependencyCycle cycle)

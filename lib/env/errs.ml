@@ -4,7 +4,7 @@ type err_kind = ImportError | SyntaxError
 
 type err = {
   cu : Proj.cu;
-  loc : Loc.t;
+  loc : Loc.loc;
   kind : err_kind;
   title : string;
   text : string;

@@ -6,7 +6,7 @@ and typ = raw_typ Loc.located [@@deriving show]
 
 (* ----- Expressions ----- *)
 
-type unop = PNeg | PNot [@@deriving show]
+type unop = PNot [@@deriving show]
 
 type binop =
   | PPlus
@@ -49,11 +49,7 @@ and fun_literal = { formal_args : formal_arg list; body : expr }
 and raw_let_decl = string * expr [@@deriving show]
 
 (* ----- Statements ----- *)
-and raw_stmt =
-  | PLet of raw_let_decl
-  | PExprStmt of raw_expr
-  [@@deriving show]
-
+and raw_stmt = PLet of raw_let_decl | PExprStmt of raw_expr [@@deriving show]
 and stmt = raw_stmt Loc.located [@@deriving show]
 
 (* ----- Top level ----- *)

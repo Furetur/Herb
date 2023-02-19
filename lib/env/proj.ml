@@ -1,7 +1,7 @@
 open Base
 
 type herbarium_tbl = (String.t, Fpath.t, String.comparator_witness) Map.t
-type cu = Fpath.t
+type cu = Fpath.t [@@deriving eq, show]
 type proj = { root : Fpath.t; entry : cu; herbariums : herbarium_tbl }
 
 let herb_extention = ".herb"
@@ -47,3 +47,6 @@ module Cu_comparator = struct
     (val Comparator.make ~compare:Fpath.compare ~sexp_of_t:(fun x ->
              Sexp.Atom (Fpath.to_string x)))
 end
+
+type 'a cu_tbl = ((cu, 'a, Cu_comparator.comparator_witness) Map.t[@opaque])
+[@@deriving show]
