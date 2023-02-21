@@ -1,7 +1,6 @@
 open Base
 open Stdio
 open Proj
-open Errs
 open Parsetree
 
 type loaded_module = {
@@ -28,8 +27,7 @@ let is_already_loaded m =
   let* { tbl; _ } = access in
   return (Map.mem tbl m)
 
-let add_syntax_err cu loc =
-  add_err { cu; loc; kind = SyntaxError; title = "Illegal syntax"; text = "" }
+let add_syntax_err loc = add_err ~title:"Illegal syntax" loc
 
 let show_import import =
   let { Loc.value = { herbarium; path }; _ } = import in
@@ -46,7 +44,7 @@ let import_alias import =
   let { Loc.value = { path; _ }; _ } = import in
   List.last_exn path
 
-let resolve_import cu import =
+let resolve_import import =
   let { Loc.loc; Loc.value = { herbarium; path } } = import in
   let alias = import_alias import in
   let* { proj; _ } = access in
@@ -57,9 +55,7 @@ let resolve_import cu import =
       | Ok cu -> return (Some (alias, cu))
       | Error `UnknownHerbarium ->
           let msg = Printf.sprintf "Unknown herbarium '%s'" herbarium in
-          let* _ =
-            add_err { cu; loc; kind = ImportError; title = msg; text = "" }
-          in
+          let* _ = add_err ~title:msg loc in
           return None)
 
 let parse_cu cu =
@@ -68,14 +64,14 @@ let parse_cu cu =
   try In_channel.with_file ~f:Parser.parse path
   with Sys_error err -> Error (`FileError err)
 
-let rec load_import from_cu import =
-  let { Loc.loc; _ } = import in
-  let* imported_cu = resolve_import from_cu import in
+let rec load_import import =
+  let* cur_cu = get_cu in
+  let* imported_cu = resolve_import import in
   match imported_cu with
   | Some (alias, imported_cu) ->
       Logs.debug (fun m ->
           m "Import resolved: '%s' -> %s (from %s)" (show_import import)
-            (show_cu_path imported_cu) (show_cu_path from_cu));
+            (show_cu_path imported_cu) (show_cu_path cur_cu));
       let not = Caml.Bool.not in
       let* quit = has_errs in
       let* already_loaded = is_already_loaded imported_cu in
@@ -83,31 +79,25 @@ let rec load_import from_cu import =
         if (not quit) && not already_loaded then
           match parse_cu imported_cu with
           | Ok tree -> load_parsed_cu imported_cu tree
-          | Error (`SyntaxError loc) -> add_syntax_err imported_cu loc
+          | Error (`SyntaxError loc) -> add_syntax_err loc
           | Error (`FileError err) ->
-              add_err
-                {
-                  cu = from_cu;
-                  loc;
-                  kind = ImportError;
-                  title = "Could not read file";
-                  text = err;
-                }
+              add_err ~title:"Could not read file" ~text:err import.Loc.loc
         else return ()
       in
       return (Some (alias, imported_cu))
   | _ ->
       Logs.debug (fun m ->
           m "Import unresolved '%s' (from %s)" (show_import import)
-            (show_cu_path from_cu));
+            (show_cu_path cur_cu));
       return None
 
 and load_parsed_cu cu tree =
+  let* _ = set_cu cu in
   let import_nodes = tree.Parsetree.imports in
   (* Avoid revisiting this module *)
   let empty_tbl = Map.empty (module String) in
   let* _ = put_in_tbl cu { cu; imports = empty_tbl; tree } in
-  let* imports = many import_nodes ~f:(load_import cu) in
+  let* imports = many import_nodes ~f:load_import in
   Logs.debug (fun m -> m "Loaded %s" (show_cu_path cu));
   let* imports =
     match Map.of_alist (module String) (List.filter_opt imports) with
@@ -118,15 +108,10 @@ and load_parsed_cu cu tree =
         in
         let* _ =
           add_err
-            {
-              cu;
-              loc;
-              kind = SyntaxError;
-              title =
-                Printf.sprintf "Import alias '%s' is declared multiple times"
-                  alias;
-              text = "";
-            }
+            ~title:
+              (Printf.sprintf "Import alias '%s' is declared multiple times"
+                 alias)
+            loc
         in
         return empty_tbl
     | `Ok map -> return map
@@ -136,7 +121,7 @@ and load_parsed_cu cu tree =
 let load_entry_cu cu =
   match parse_cu cu with
   | Ok tree -> load_parsed_cu cu tree *> return (Ok ())
-  | Error (`SyntaxError loc) -> add_syntax_err cu loc *> return (Ok ())
+  | Error (`SyntaxError loc) -> add_syntax_err loc *> return (Ok ())
   | Error (`FileError err) -> return (Error (`FileError err))
 
 (* --- Result --- *)
@@ -148,7 +133,6 @@ type schedule = {
 
 type loading_result =
   | EntryFileError of Fpath.t * string
-  | DependencyCycle of cu list
   | Errors of Errs.err list
   | Loaded of schedule
 
@@ -158,7 +142,7 @@ let load_project proj : loading_result =
   Logs.info (fun m -> m "\troot at %s" (Fpath.to_string proj.root));
 
   let s = { proj; tbl = Map.empty (module Proj.Cu_comparator) } in
-  let s, errs, res = run_pass (load_entry_cu proj.entry) ~init:s in
+  let s, errs, res = run_pass proj.entry (load_entry_cu proj.entry) ~init:s in
   let tbl = s.tbl in
   match (res, errs) with
   | Error (`FileError err), _ -> EntryFileError (cu_path proj.entry, err)
@@ -185,5 +169,13 @@ let load_project proj : loading_result =
           Loaded schedule
       | Error cycle ->
           Logs.info (fun m -> m "Dependency cycle detected");
-          DependencyCycle cycle)
+          let text =
+            String.concat ~sep:"->\n  "
+              (List.map cycle ~f:(fun cu -> Fpath.to_string (Proj.cu_path cu)))
+          in
+          Errors
+            [
+              Errs.err ~title:"Dependency cycle detected" ~text proj.entry
+                Loc.start_loc;
+            ])
   | Ok (), errs -> Errors errs

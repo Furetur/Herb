@@ -2,7 +2,7 @@
 
 (library
  (preprocess
-  (pps ppx_deriving.std ppx_import))
+  (pps ppx_deriving.std))
  (libraries base stdio fpath logs logs.fmt logs.cli fmt fmt.tty)
  (public_name herb)
  (name herb))

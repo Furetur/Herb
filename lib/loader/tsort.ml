@@ -66,7 +66,7 @@ let tsort get_imports cu =
   let s =
     { get_imports; schedule = []; marks = Map.empty (module Cu_comparator) }
   in
-  let s, _, res = run_pass (visit cu) ~init:s in
+  let s, _, res = run_pass cu (visit cu) ~init:s in
   match res with
   | Ok () -> Ok (List.rev s.schedule)
   | Error cycle -> Error cycle

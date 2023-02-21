@@ -19,6 +19,7 @@ depends: [
   "cmdliner"
   "fmt"
   "logs"
+  "ppx_deriving"
   "odoc" {with-doc}
 ]
 build: [

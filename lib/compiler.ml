@@ -20,13 +20,4 @@ let compile path =
       | Errors x -> print_endline (Errs.show_errs x)
       | EntryFileError (_, s) ->
           print_endline
-            Errs.(
-              show_simple_err ImportError ~title:"Could not open file" ~text:s)
-      | DependencyCycle cycle ->
-          let title = "Dependency cycle detected" in
-          let cycle =
-            String.concat ~sep:"->\n  "
-              (List.map cycle ~f:(fun cu -> Fpath.to_string (Proj.cu_path cu)))
-          in
-
-          print_endline Errs.(show_simple_err ImportError ~title ~text:cycle))
+            Errs.(show_simple_err ~title:"Could not open file" ~text:s))

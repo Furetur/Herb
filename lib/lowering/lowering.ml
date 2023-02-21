@@ -24,15 +24,7 @@ let add_top_decl d =
 let set_entry entry =
   let* s = access in
   match s.entry with
-  | Some _ ->
-      add_err
-        {
-          cu = s.cu;
-          loc = entry.loc;
-          kind = SyntaxError;
-          title = "Entry already defined";
-          text = "";
-        }
+  | Some _ -> add_err ~title:"Entry already defined" entry.loc
   | None -> put { s with entry = Some entry }
 
 (* ----- Pass ----- *)
@@ -178,13 +170,13 @@ open Loader
 let init cu = { cu; top_decls = []; entry = None }
 
 let lower_lib_module { cu; imports; tree } =
-  let st, err, _ = run_pass (lower_file tree) ~init:(init cu) in
+  let st, err, _ = run_pass cu (lower_file tree) ~init:(init cu) in
   match err with
   | [] -> Ok { cu; imports; decls = st.top_decls }
   | errs -> Error errs
 
 let lower_entry_module { cu; imports; tree } =
-  let st, err, _ = run_pass (lower_file tree) ~init:(init cu) in
+  let st, err, _ = run_pass cu (lower_file tree) ~init:(init cu) in
   match err with
   | [] -> (
       match st.entry with
@@ -192,17 +184,11 @@ let lower_entry_module { cu; imports; tree } =
           let lib = { cu; imports; decls = st.top_decls } in
           Ok { module_ = lib; entry }
       | None ->
-          let open Errs in
-          let err =
-            {
-              cu;
-              loc = start_loc;
-              kind = SyntaxError;
-              title = "This module must have an entrypoint";
-              text = "Define an entry point using `entry {}`";
-            }
-          in
-          Error [ err ])
+          Error
+            [
+              Errs.err ~title:"This module must have an entrypoint"
+                ~text:"Define an entry point using `entry {}`" cu start_loc;
+            ])
   | errs -> Error errs
 
 let combine xs = Result.map_error (Result.combine_errors xs) ~f:List.concat

@@ -1,3 +1,5 @@
+open Base
+
 module type STATE = sig
   type t
 end
@@ -7,25 +9,22 @@ module Pass (S : STATE) : sig
 
   (* Run *)
 
-  val run_pass : 'a t -> init:S.t -> S.t * Errs.err list * 'a
+  val run_pass : Proj.cu -> 'a t -> init:S.t -> S.t * Errs.err list * 'a
 
-  (* Combinators *)
+  (* User state combinators *)
 
   val access : S.t t
   val put : S.t -> unit t
   val return : 'r -> 'r t
-  val bind : 'r t -> ('r -> 'rr t) -> 'rr t
   val ( let* ) : 'r t -> ('r -> 'rr t) -> 'rr t
 
-  (* Error combinators *)
+  (* Compilation state combinators *)
 
-  val add_err : Errs.err -> unit t
+  val get_cu : Proj.cu t
+  val set_cu : Proj.cu -> unit t
+  val add_custom_err : Errs.err -> unit t
+  val add_err : title:string -> ?text:string -> Loc.loc -> unit t
   val has_errs : bool t
-
-  (* Simple helpers *)
-
-  val ok : 'ok -> ('ok, _) result t
-  val error : 'err -> (_, 'err) result t
 
   (* High-level combinators *)
 
@@ -33,41 +32,70 @@ module Pass (S : STATE) : sig
   val ( *> ) : 'a t -> 'b t -> 'b t
   val ( <* ) : 'a t -> 'b t -> 'a t
   val many : 'a list -> f:('a -> 'b t) -> 'b list t
-  val many_err : 'a list -> f:('a -> (_, 'c) result t) -> (unit, 'c) result t
+
+  val many_err :
+    'a list -> f:('a -> (_, 'c) Result.t t) -> (unit, 'c) Result.t t
+
   val fold_state : 'a list -> f:('a -> unit t) -> unit t
+
+  (* Simple helpers *)
+
+  val ok : 'ok -> ('ok, _) Result.t t
+  val error : 'err -> (_, 'err) Result.t t
 end = struct
-  type state = { userstate : S.t; errs : Errs.err list }
+  type state = { userstate : S.t; cu : Proj.cu; errs : Errs.err list }
   type 'r t = state -> state * 'r
 
   (* Run *)
 
-  let run_pass t ~init =
-    let init = { userstate = init; errs = [] } in
+  let run_pass cu t ~init =
+    let init = { userstate = init; cu; errs = [] } in
     let state, r = t init in
     (state.userstate, state.errs, r)
 
-  (* Combinators *)
+  (* Get and set internal state *)
+  let access_state s = (s, s)
+  let put_state u _ = (u, ())
 
-  let access s = (s, s.userstate)
-  let put u s = ({ s with userstate = u }, ())
+  (* User state combinators *)
+
   let return r s = (s, r)
 
-  let bind t f s =
+  let ( let* ) t f s =
     let s, r = t s in
     let f_t = f r in
     f_t s
 
-  let ( let* ) = bind
+  let access =
+    let* s = access_state in
+    return s.userstate
 
-  (* Error combinators *)
+  let put u =
+    let* s = access_state in
+    put_state { s with userstate = u }
 
-  let add_err err s =
-    let s = { s with errs = err :: s.errs } in
-    (s, ())
+  (* Compilation state combinators *)
 
-  let has_errs s =
-    let { errs; _ } = s in
-    match errs with [] -> (s, false) | _ -> (s, true)
+  let get_cu =
+    let* s = access_state in
+    return s.cu
+
+  let set_cu cu =
+    let* s = access_state in
+    put_state { s with cu }
+
+  let add_custom_err err =
+    let* s = access_state in
+    put_state { s with errs = err :: s.errs }
+
+  let add_err ~title ?(text = "") loc =
+    let open Errs in
+    let* cu = get_cu in
+    add_custom_err { cu; loc; title; text }
+
+  let has_errs =
+    let* { errs; _ } = access_state in
+    return (Caml.Bool.not (List.is_empty errs))
 
   (* Simple helpers *)
 

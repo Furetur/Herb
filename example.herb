@@ -1,5 +1,7 @@
 import example1
 
 entry {
-    print(1)
+    for i = 0..10 {
+        print(i)
+    }
 }
