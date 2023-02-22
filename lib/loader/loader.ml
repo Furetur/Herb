@@ -72,27 +72,29 @@ let rec load_import import =
       Logs.debug (fun m ->
           m "Import resolved: '%s' -> %s (from %s)" (show_import import)
             (show_cu_path imported_cu) (show_cu_path cur_cu));
-      let not = Caml.Bool.not in
-      let* quit = has_errs in
-      let* already_loaded = is_already_loaded imported_cu in
-      let* _ =
-        if (not quit) && not already_loaded then
-          match parse_cu imported_cu with
-          | Ok tree -> load_parsed_cu imported_cu tree
-          | Error (`SyntaxError loc) -> add_syntax_err loc
-          | Error (`FileError err) ->
-              add_err ~title:"Could not read file" ~text:err import.Loc.loc
-        else return ()
-      in
-      return (Some (alias, imported_cu))
+      load_imported_cu import.Loc.loc imported_cu
+      *> return (Some (alias, imported_cu))
   | _ ->
       Logs.debug (fun m ->
           m "Import unresolved '%s' (from %s)" (show_import import)
             (show_cu_path cur_cu));
       return None
 
+and load_imported_cu import_loc cu =
+  let* quit = has_errs in
+  let* already_loaded = is_already_loaded cu in
+  if (not quit) && not already_loaded then
+    let* from_cu = get_cu in
+    set_cu cu
+    *> (match parse_cu cu with
+       | Ok tree -> load_parsed_cu cu tree
+       | Error (`SyntaxError loc) -> add_syntax_err loc
+       | Error (`FileError err) ->
+           add_err ~title:"Could not read file" ~text:err import_loc)
+    *> set_cu from_cu
+  else return ()
+
 and load_parsed_cu cu tree =
-  let* _ = set_cu cu in
   let import_nodes = tree.Parsetree.imports in
   (* Avoid revisiting this module *)
   let empty_tbl = Map.empty (module String) in
@@ -119,6 +121,8 @@ and load_parsed_cu cu tree =
   put_in_tbl cu { cu; imports; tree }
 
 let load_entry_cu cu =
+  set_cu cu
+  *>
   match parse_cu cu with
   | Ok tree -> load_parsed_cu cu tree *> return (Ok ())
   | Error (`SyntaxError loc) -> add_syntax_err loc *> return (Ok ())
