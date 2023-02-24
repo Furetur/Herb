@@ -11,7 +11,7 @@ let input_file =
 let parse input_file =
   let result = In_channel.with_file input_file ~f:Parser.parse in
   match result with
-  | Ok tree -> print_endline (Parsetree.show_herbfile tree)
+  | Ok tree -> print_endline (Ast.show_parsed_file tree)
   | Error (`SyntaxError loc) ->
       let line, col = Loc.start_line_col loc in
       print_endline

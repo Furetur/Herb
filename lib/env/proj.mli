@@ -18,7 +18,6 @@ val resolve_abs_import :
 
 (* CUs *)
 val cu_path : cu -> Fpath.t
-val cu_eq : cu -> cu -> bool
 
 module Cu_comparator : sig
   type t = cu

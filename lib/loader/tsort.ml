@@ -6,6 +6,7 @@ type mark = Unmarked | Visiting | Scheduled
 type tsort_state = {
   marks : (cu, mark, Cu_comparator.comparator_witness) Map.t;
   schedule : cu list;
+  cycle : cu list;
   get_imports : cu -> cu list;
 }
 
@@ -35,22 +36,25 @@ let get_imports cu =
   let* { get_imports; _ } = access in
   return (get_imports cu)
 
-(* --- Sort --- *)
-
-let update_cycle cu cycle =
-  let ( = ) = Proj.cu_eq in
-  match cycle with
+let add_to_cycle cu =
+  let ( = ) = Proj.equal_cu in
+  let* s = access in
+  let not_add = return () in
+  let add = put { s with cycle = cu :: s.cycle } in
+  match s.cycle with
   | first :: rest -> (
       match List.last rest with
-      | Some last when first = last -> cycle
-      | _ -> cu :: cycle)
-  | _ -> cu :: cycle
+      | Some last when first = last -> not_add
+      | _ -> add)
+  | _ -> add
+
+(* --- Pass --- *)
 
 let rec visit cu =
   let* mark = get_mark cu in
   match mark with
   | Scheduled -> ok ()
-  | Visiting -> error [ cu ]
+  | Visiting -> add_to_cycle cu *> error ()
   | Unmarked -> (
       let* _ = set_mark cu Visiting in
       let* imports = get_imports cu in
@@ -60,13 +64,35 @@ let rec visit cu =
           let* _ = set_mark cu Scheduled in
           let* _ = add_to_schedule cu in
           ok ()
-      | Error cycle -> error (update_cycle cu cycle))
+      | Error () -> add_to_cycle cu *> error ())
+
+(* --- Result --- *)
+
+type cu_schedule = cu list * cu
+
+let into_cu_schedule list entry : cu_schedule =
+  let ( = ) = Proj.equal_cu in
+  let libs = List.filter list ~f:(fun cu -> Caml.Bool.not (cu = entry)) in
+  (libs, entry)
 
 let tsort get_imports cu =
   let s =
-    { get_imports; schedule = []; marks = Map.empty (module Cu_comparator) }
+    {
+      get_imports;
+      schedule = [];
+      cycle = [];
+      marks = Map.empty (module Cu_comparator);
+    }
   in
   let s, _, res = run_pass cu (visit cu) ~init:s in
   match res with
-  | Ok () -> Ok (List.rev s.schedule)
-  | Error cycle -> Error cycle
+  | Ok () -> Ok (into_cu_schedule (List.rev s.schedule) cu)
+  | Error () ->
+      Logs.info (fun m -> m "Dependency cycle detected");
+      let text =
+        String.concat ~sep:"->\n  "
+          (List.map s.cycle ~f:(fun cu -> Fpath.to_string (Proj.cu_path cu)))
+      in
+      Error
+        (`Errs
+          [ Errs.err ~title:"Dependency cycle detected" ~text cu Loc.start_loc ])

@@ -38,7 +38,6 @@ let resolve_abs_import proj ~herbarium ~path =
   | None -> Error `UnknownHerbarium
 
 let cu_path p = p
-let cu_eq = Fpath.equal
 
 module Cu_comparator = struct
   type t = cu

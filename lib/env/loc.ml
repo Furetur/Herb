@@ -4,6 +4,8 @@ open Lexing
 type loc = Lexing.position * Lexing.position
 type 'a located = { loc : loc; value : 'a }
 
+let locate loc ~value = { loc; value }
+
 let bad_loc =
   let bad_pos =
     { pos_fname = "error"; pos_lnum = -1; pos_cnum = -1; pos_bol = -1 }
