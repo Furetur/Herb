@@ -28,12 +28,14 @@ module Pass (S : STATE) : sig
   val set_cu : Proj.cu -> unit t
   val add_custom_err : Errs.err -> unit t
   val add_err : title:string -> ?text:string -> Loc.loc -> unit t
+  val add_err_t : Errs.Templates.t -> unit t
   val has_errs : bool t
 
   (* Final combinators *)
 
   val return_final : 'r -> ('r, _) Result.t t
-  val fail_final : Errs.err -> (_, Errs.err list) Result.t t
+  val fail_final : Errs.Templates.t -> (_, Errs.err list) Result.t t
+
 
   (* High-level combinators *)
 
@@ -105,6 +107,10 @@ end = struct
     let open Errs in
     let* cu = get_cu in
     add_custom_err { cu; loc; title; text }
+  
+  let add_err_t t =
+    let* cu = get_cu in
+    add_custom_err (t cu)
 
   let has_errs =
     let* { errs; _ } = access_state in
@@ -120,7 +126,7 @@ end = struct
   let return_final x = ok x
 
   let fail_final err =
-    let* _ = add_custom_err err in
+    let* _ = add_err_t err in
     let* s = access_state in
     error s.errs
 

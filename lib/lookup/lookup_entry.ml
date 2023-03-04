@@ -67,10 +67,7 @@ let visit_entry_module m =
   let* entry, lib = visit_parsed_file m in
   match entry with
   | Some entry -> return_final { entry; lib_module = lib }
-  | None ->
-      fail_final
-        (Errs.err ~title:"This module must have an entrypoint"
-           ~text:"Define an entry point using `entry {}`" m.cu Loc.start_loc)
+  | None -> fail_final Errs.Templates.no_entry_error
 
 (* ----- Runners ----- *)
 

@@ -130,12 +130,8 @@ let tsort_tbl (tbl : module_tbl) entry_cu =
       return_final ast
   | Error (`Cycle cycle) ->
       Logs.info (fun m -> m "Dependency cycle detected");
-      let text =
-        String.concat ~sep:"->\n  " (List.map cycle ~f:(fun m -> show_cu m.cu))
-      in
-      fail_final
-        (Errs.err ~title:"Dependency cycle detected" ~text entry_cu
-           Loc.start_loc)
+      let cycle = List.map cycle ~f:(fun m -> m.cu) in
+      fail_final (Errs.Templates.dependency_cycle_error cycle)
 
 let load_proj_from_entry cu chan =
   set_cu cu
@@ -147,7 +143,7 @@ let load_proj_from_entry cu chan =
       (* TODO: do not run tsort if there are errors (some files failed to load) *)
       tsort_tbl tbl cu
   | Error (`SyntaxError loc) ->
-      fail_final (Errs.err ~title:"Illegal syntax" cu loc)
+      fail_final (Errs.Templates.syntax_error loc)
 
 (* --- Runners --- *)
 
