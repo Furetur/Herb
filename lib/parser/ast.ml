@@ -67,9 +67,12 @@ type raw_import = { herbarium : string option; path : string list }
 
 type import = raw_import Loc.located [@@deriving show]
 
+type raw_extern = { name : string; typ : typ; linkname : string }
+[@@deriving show]
+
 type top_decl_raw =
   | AToplevelLet of raw_let_decl
-  | AExtern of { name : string; typ : typ; linkname : string }
+  | AExtern of raw_extern
   | AEntry of block
 [@@deriving show]
 
