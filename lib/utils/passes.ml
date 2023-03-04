@@ -9,7 +9,11 @@ module Pass (S : STATE) : sig
 
   (* Run *)
 
-  val run_pass : Proj.cu -> 'a t -> init:S.t -> S.t * Errs.err list * 'a
+  val run_pass :
+    Proj.cu ->
+    ('a, Errs.err list) Result.t t ->
+    init:S.t ->
+    ('a, Errs.err list) Result.t
 
   (* User state combinators *)
 
@@ -26,6 +30,11 @@ module Pass (S : STATE) : sig
   val add_err : title:string -> ?text:string -> Loc.loc -> unit t
   val has_errs : bool t
 
+  (* Final combinators *)
+
+  val return_final : 'r -> ('r, _) Result.t t
+  val fail_final : Errs.err -> (_, Errs.err list) Result.t t
+
   (* High-level combinators *)
 
   val ignore : 'a t -> unit t
@@ -36,6 +45,7 @@ module Pass (S : STATE) : sig
   val many_err :
     'a list -> f:('a -> (_, 'c) Result.t t) -> (unit, 'c) Result.t t
 
+  (* Rename to many_unit??? *)
   val fold_state : 'a list -> f:('a -> unit t) -> unit t
 
   (* Simple helpers *)
@@ -50,8 +60,11 @@ end = struct
 
   let run_pass cu t ~init =
     let init = { userstate = init; cu; errs = [] } in
-    let state, r = t init in
-    (state.userstate, state.errs, r)
+    let s, r = t init in
+    match (r, s.errs) with
+    | Ok r, [] -> Ok r
+    | Error errs, _ -> Error errs
+    | _, errs -> Error errs
 
   (* Get and set internal state *)
   let access_state s = (s, s)
@@ -101,6 +114,15 @@ end = struct
 
   let ok x = return (Ok x)
   let error x = return (Error x)
+
+  (* Final combinators *)
+
+  let return_final x = ok x
+
+  let fail_final err =
+    let* _ = add_custom_err err in
+    let* s = access_state in
+    error s.errs
 
   (* High-level combinators *)
 

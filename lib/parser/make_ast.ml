@@ -24,15 +24,11 @@ let make_raw_let_decl name e : raw_let_decl = (name, e)
 (* - Top level - *)
 
 let make_import raw : import t = located raw
+let make_entry block : top_decl t = located (AEntry block)
+let make_top_level_let raw : top_decl t = located (AToplevelLet raw)
 
-let make_entry block : parsed_top t =
- fun loc -> PTopEntry { value = block; loc }
-
-let make_top_level_let raw : parsed_top t =
- fun loc -> PTopDecl { loc; value = AToplevelLet raw }
-
-let make_extern name typ linkname loc =
-  PTopDecl { loc; value = AExtern { name; typ; linkname } }
+let make_extern name typ linkname : top_decl t =
+  located (AExtern { name; typ; linkname })
 
 (* --- Statements --- *)
 
