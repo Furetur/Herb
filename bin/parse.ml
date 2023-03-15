@@ -9,13 +9,16 @@ let input_file =
   Arg.required (Arg.pos 0 (Arg.some Arg.file) None info)
 
 let parse input_file =
-  let result = In_channel.with_file input_file ~f:Parser.parse in
-  match result with
-  | Ok tree -> print_endline (Ast.show_parsed_file tree)
-  | Error (`SyntaxError loc) ->
-      let line, col = Loc.start_line_col loc in
-      print_endline
-        (Printf.sprintf "Syntax error at line %d column %d" line col)
+  match Fpath.of_string input_file with
+  | Error (`Msg msg) -> print_endline ("Invalid path: " ^ msg)
+  | Ok path -> (
+      match Parser.parse ~errpath:path path with
+      | Ok tree -> print_endline (Ast.show_parsed_file tree)
+      | Error (`SyntaxError loc) ->
+          let line, col = Loc.start_line_col loc in
+          print_endline
+            (Printf.sprintf "Syntax error at line %d column %d" line col)
+      | Error (`FileError msg) -> print_endline ("Error: " ^ msg))
 
 let parse_t = Term.(const parse $ input_file)
 

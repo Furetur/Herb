@@ -1,4 +1,1 @@
-
-let lookup ast =
-  Lookup_entry.lookup_entry ast
-  
+let lookup ast = ast

@@ -12,7 +12,4 @@ let compile path =
       | Ok ast ->
           print_endline (Ast.show_ast ast);
           print_endline "Loaded"
-      | Error (`EntryFileError (_, s)) ->
-          print_endline
-            Errs.(show_simple_err ~title:"Could not open file" ~text:s)
-      | Error (`Errs errs) -> print_endline (Errs.show_errs errs))
+      | Error errs -> print_endline (Errs.show_errs errs))

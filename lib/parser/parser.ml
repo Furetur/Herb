@@ -1,17 +1,19 @@
 open Base
 open Stdio
-
-let with_file path f =
-  try In_channel.with_file ~f:(fun x -> f (Ok x)) (Fpath.to_string path)
-  with Sys_error err -> f (Error err)
+open Loc
 
 let get_loc buf = (Lexing.lexeme_start_p buf, Lexing.lexeme_end_p buf)
 
-let parse chan =
-  let buf = Lexing.from_channel chan in
-  try
-    let x = Parser_.herbfile Lexer_.token buf in
-    Ok x
-  with
-  | Lexer_.Error -> Error (`SyntaxError (get_loc buf))
-  | Parser_.Error -> Error (`SyntaxError (get_loc buf))
+let parse ~errpath file :
+    (Ast.parsed_file, [> `FileError of string | `SyntaxError of loc ]) Result.t
+    =
+  let parse chan =
+    let buf = Lexing.from_channel chan in
+    Lexing.set_filename buf (Fpath.to_string errpath);
+    try Ok (Parser_.herbfile Lexer_.token buf)
+    with Lexer_.Error | Parser_.Error ->
+      let loc = get_loc buf in
+      Error (`SyntaxError loc)
+  in
+  try In_channel.with_file ~f:parse (Fpath.to_string file)
+  with Sys_error err -> Error (`FileError err)

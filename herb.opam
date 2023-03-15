@@ -20,6 +20,7 @@ depends: [
   "fmt"
   "logs"
   "ppx_deriving"
+  "location"
   "odoc" {with-doc}
 ]
 build: [
