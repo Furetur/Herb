@@ -69,7 +69,4 @@ module Pass (S : STATE) = struct
     let pushback xs x = List.cons <$> x <*> xs in
     let ts = List.map xs ~f in
     List.fold ts ~init:(return []) ~f:pushback
-
-  let many_unit (xs : 'a list) ~(f : 'a -> unit t) : unit t =
-    many xs ~f *> return ()
 end

@@ -16,12 +16,15 @@ let infile_loc path : loc =
   let pos =
     {
       pos_fname = Fpath.to_string path;
-      pos_lnum = -1;
-      pos_cnum = -1;
-      pos_bol = -1;
+      pos_lnum = 0;
+      pos_cnum = 0;
+      pos_bol = 0;
     }
   in
   (pos, pos)
+
+let incu_loc cu : loc =
+  infile_loc (Proj.cu_path cu)
 
 let start_loc =
   let start_loc = { pos_fname = ""; pos_lnum = 0; pos_cnum = 0; pos_bol = 0 } in

@@ -45,6 +45,23 @@ let dependency_cycle_error cycle =
 
 (* - Lookup errors - *)
 
-let no_entry_error =
+let no_entry_error cu =
   err ~title:"This module must have an entrypoint"
-    ~text:"Define an entry point using `entry {}`" Loc.start_loc
+    ~text:"Define an entry point using `entry { ... }`" (Loc.incu_loc cu)
+
+let multiple_entry_error last_entry_loc =
+  err ~title:"Entry redeclaration" ~text:"The project entry file must contain exactly one 'entry { ... }'" last_entry_loc
+
+let undefined_variable name loc =
+  let title = Printf.sprintf "Unknown variable '%s'" name in
+  err ~title loc
+
+let undefined_type name loc =
+  let title = Printf.sprintf "Unknown type '%s'" name in
+  let text = "Valid named types are string, int and bool" in
+  err ~title ~text loc
+
+let toplevel_redeclaration name loc =
+  let title = Printf.sprintf "Variable redeclaration '%s'" name in
+  let text = "Top level variables must have unique names" in
+  err ~title ~text loc

@@ -1,6 +1,7 @@
 open Base
 open Loc
 open Proj
+open Ast_operators
 
 (* ----- Types ----- *)
 
@@ -12,22 +13,6 @@ type raw_typ =
 and typ = raw_typ located [@@deriving show]
 
 (* ----- Expressions ----- *)
-
-type unop = ANot [@@deriving show]
-
-type binop =
-  | APlus
-  | AMinus
-  | AMul
-  | ADiv
-  | AMod
-  | ALt
-  | ALte
-  | AEq
-  | ANeq
-  | AGte
-  | AGt
-[@@deriving show]
 
 type literal =
   | ABool of bool

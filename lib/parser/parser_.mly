@@ -21,6 +21,7 @@
 
 
 %{ 
+  open Ast_operators
   open Ast
   open Make_ast
 %}
@@ -168,7 +169,7 @@ let binop_mul_expr :=
   | e=unop_expr; { e }
 
 let unary_op := 
-  | "!"; { Ast.ANot }
+  | "!"; { ANot }
 
 (* -------------------------------------------------------------------------- *)
 
