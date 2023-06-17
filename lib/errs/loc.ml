@@ -6,6 +6,10 @@ type 'a located = { loc : loc; value : 'a }
 
 let locate loc ~value = { loc; value }
 
+(* - Special locs - *)
+
+let none_loc = (dummy_pos, dummy_pos)
+
 let bad_loc =
   let bad_pos =
     { pos_fname = "error"; pos_lnum = -1; pos_cnum = -1; pos_bol = -1 }
@@ -22,9 +26,6 @@ let infile_loc path : loc =
     }
   in
   (pos, pos)
-
-let incu_loc cu : loc =
-  infile_loc (Proj.cu_path cu)
 
 let start_loc =
   let start_loc = { pos_fname = ""; pos_lnum = 0; pos_cnum = 0; pos_bol = 0 } in

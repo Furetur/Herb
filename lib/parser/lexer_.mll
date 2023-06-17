@@ -19,7 +19,6 @@ let digit = ['0'-'9']
 let id = ['a'-'z'] ['a'-'z' '0'-'9' '_']*
 
 let string_literal_char = ("\\" _) | [^ '"' '\\']
-let string_literal = '"' string_literal_char* '"'
 
 rule token = parse
 (* Whitespace *)
@@ -32,7 +31,6 @@ rule token = parse
 | "if" { IF }
 | "else" { ELSE }
 | "while" { WHILE }
-| "import" { IMPORT }
 | "for" { FOR }
 | "extern" { EXTERN }
 

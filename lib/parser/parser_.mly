@@ -17,7 +17,7 @@
 %token COMMA "," COLON ":" ARROW "->" LPAREN "(" RPAREN ")" LBRACE "{" RBRACE "}" DOT "." DOTDOT ".."
 
 // Keywords
-%token LET ENTRY IF ELSE WHILE IMPORT FOR EXTERN
+%token LET ENTRY IF ELSE WHILE FOR EXTERN
 
 
 %{ 
@@ -26,25 +26,14 @@
   open Make_ast
 %}
 
-%start <parsed_file> herbfile  
+%start <ast> herbfile  
 
 %%
 
 (* -------------------------------------------------------------------------- *)
 
 let herbfile :=
-  i=import*; d=toplevel_decl*; EOF; { {imports=i; decls=d } }
-
-(* -----   Imports   ----- *)
-
-let raw_import :=
-  | IMPORT; herbarium=ID; ":"; path=separated_nonempty_list(".", ID); { { herbarium = Some herbarium; path } }
-  | IMPORT; path=separated_nonempty_list(".", ID); { { herbarium = None; path } }
-
-let import := located(
-  | x=raw_import; { make_import x }
-)
-
+  d=toplevel_decl*; EOF; { { decls=d } }
 
 (* -----    Types    ----- *)
 
@@ -107,7 +96,6 @@ let expr :=
     | IF; cond=expr; then_=block; { make_if cond then_ [] }
     | IF; cond=expr; then_=block; ELSE; else_=block; { make_if cond then_ else_ }
     | WHILE; cond=expr; body=block; { make_while cond body }
-    | FOR; i=ID; "="; start_=expr; ".."; end_=expr; body=block; { make_for i start_ end_ body } 
   )
 
 let block := LBRACE; exprs=stmt*; RBRACE; { exprs }

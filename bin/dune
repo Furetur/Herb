@@ -4,10 +4,3 @@
  (package herb)
  (modules herbc)
  (libraries cmdliner herb))
-
-(executable
- (public_name parse)
- (name parse)
- (package herb)
- (modules parse)
- (libraries cmdliner herb))

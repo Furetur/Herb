@@ -23,7 +23,6 @@ let make_raw_let_decl name e : raw_let_decl = (name, e)
 
 (* - Top level - *)
 
-let make_import raw : import t = located raw
 let make_entry block : top_decl t = located (AEntry block)
 let make_top_level_let raw : top_decl t = located (AToplevelLet raw)
 
@@ -53,35 +52,6 @@ let make_fun_call callee args = located (AFunCall { callee; args })
 let make_block exprs : expr t = located (ABlock exprs)
 let make_if cond then_ else_ : expr t = located (AIf { cond; then_; else_ })
 let make_while cond body = located (AWhile { cond; body })
-
-let make_for i (start_ : expr) (end_ : expr) (body : block) : expr t =
- fun loc ->
-  let id = bad_locate ~value:(AIdent i) in
-  let one = bad_locate ~value:(ALiteral (AInt 1)) in
-  let increment_i =
-    bad_locate
-      ~value:
-        (AExprStmt (AAssign (id, bad_locate ~value:(ABinOp (id, APlus, one)))))
-  in
-  locate loc
-    ~value:
-      (ABlock
-         [
-           bad_locate ~value:(ALetStmt (i, start_));
-           locate loc
-             ~value:
-               (AExprStmt
-                  (AWhile
-                     {
-                       cond = bad_locate ~value:(ABinOp (id, ALte, end_));
-                       body =
-                         [
-                           bad_locate ~value:(AExprStmt (ABlock body));
-                           increment_i;
-                         ];
-                     }));
-         ])
-
 let make_unop op e : expr t = located (AUnOp (op, e))
 
 (* - Binary operators - *)
@@ -99,27 +69,5 @@ let make_minus = simple_binop AMinus
 let make_mul = simple_binop AMul
 let make_div = simple_binop ADiv
 let make_mod = simple_binop AMod
-
-let make_or l r : expr t =
- fun loc ->
-  let true_ = ALiteral (ABool true) in
-  locate loc
-    ~value:
-      (AIf
-         {
-           cond = l;
-           then_ = [ bad_locate ~value:(AExprStmt true_) ];
-           else_ = [ expr_to_stmt r ];
-         })
-
-let make_and l r : expr t =
- fun loc ->
-  let false_ = ALiteral (ABool false) in
-  locate loc
-    ~value:
-      (AIf
-         {
-           cond = l;
-           then_ = [ expr_to_stmt r ];
-           else_ = [ bad_locate ~value:(AExprStmt false_) ];
-         })
+let make_or = simple_binop AOr
+let make_and = simple_binop AAnd

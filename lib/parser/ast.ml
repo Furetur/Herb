@@ -1,6 +1,5 @@
 open Base
 open Loc
-open Proj
 open Ast_operators
 
 (* ----- Types ----- *)
@@ -65,32 +64,4 @@ type top_decl = top_decl_raw located [@@deriving show]
 
 (* ----- Parsed File ----- *)
 
-type parsed_file = { imports : import list; decls : top_decl list }
-[@@deriving show]
-
-(* ----- Modules ----- *)
-
-type resolved_import = { imported_cu : cu; import : import } [@@deriving show]
-
-type ast_module = {
-  cu : cu;
-  resolved_imports : resolved_import list;
-  decls : top_decl list;
-}
-[@@deriving show]
-
-type ast = { entry_module : ast_module; lib_modules : ast_module list }
-[@@deriving show]
-
-(* ----- Helpers ------ *)
-
-let equal_ast_module m1 m2 = equal_cu m1.cu m2.cu
-
-module Module_comparator = struct
-  type t = ast_module
-
-  let compare x y = Cu_comparator.comparator.compare x.cu y.cu
-  let sexp_of_t x = Sexp.Atom (show_cu x.cu)
-
-  include (val Comparator.make ~compare ~sexp_of_t)
-end
+type ast = { decls : top_decl list } [@@deriving show]

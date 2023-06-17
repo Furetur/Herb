@@ -1,7 +1,0 @@
-import example1
-
-entry {
-    for i = 0..10 {
-        print(i)
-    }
-}

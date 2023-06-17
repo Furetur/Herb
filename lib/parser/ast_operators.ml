@@ -12,4 +12,6 @@ type binop =
   | ANeq
   | AGte
   | AGt
+  | AOr
+  | AAnd
 [@@deriving show]
