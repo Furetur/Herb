@@ -1,3 +1,6 @@
+extern print: (int) -> unit = "__print"
+let x = 0
+
 let f = while x {
     print(x)
 }

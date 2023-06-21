@@ -39,9 +39,7 @@ and expr = raw_expr located [@@deriving show]
 and raw_let_decl = string * expr [@@deriving show]
 
 (* ----- Statements ----- *)
-and raw_stmt = ALetStmt of raw_let_decl | AExprStmt of raw_expr
-[@@deriving show]
-
+and raw_stmt = ALetStmt of raw_let_decl | AExprStmt of expr [@@deriving show]
 and stmt = raw_stmt located [@@deriving show]
 
 (* ----- Top level ----- *)
@@ -64,4 +62,5 @@ type top_decl = top_decl_raw located [@@deriving show]
 
 (* ----- Parsed File ----- *)
 
-type ast = { decls : top_decl list } [@@deriving show]
+type raw_ast = { decls : top_decl list } [@@deriving show]
+type ast = raw_ast located [@@deriving show]

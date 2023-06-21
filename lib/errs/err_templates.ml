@@ -13,25 +13,25 @@ let syntax_error loc = err ~title:"Syntax error" loc
 
 (* - Lookup errors - *)
 
-let no_entry_error file =
+let no_entry_error loc =
   err ~title:"This module must have an entrypoint"
-    ~text:"Define an entry point using `entry { ... }`" (Loc.infile_loc file)
+    ~text:"Define an entry point using `entry { ... }`" loc
 
-let multiple_entry_error last_entry_loc =
-  err ~title:"Entry redeclaration"
-    ~text:"The project entry file must contain exactly one 'entry { ... }'"
-    last_entry_loc
+let multiple_entry_error loc =
+  err ~title:"Multiple entries"
+    ~text:"The file must contain exactly one 'entry { ... }'"
+    loc
 
 let undefined_variable name loc =
-  let title = Printf.sprintf "Unknown variable '%s'" name in
+  let title = Printf.sprintf "Undefined variable name '%s'" name in
   err ~title loc
 
 let undefined_type name loc =
   let title = Printf.sprintf "Unknown type '%s'" name in
-  let text = "Valid named types are string, int and bool" in
+  let text = "Valid named types are unit, string, int and bool" in
   err ~title ~text loc
 
 let toplevel_redeclaration name loc =
-  let title = Printf.sprintf "Variable redeclaration '%s'" name in
-  let text = "Top level variables must have unique names" in
+  let title = Printf.sprintf "Name redeclaration '%s'" name in
+  let text = "Top level names must be unique" in
   err ~title ~text loc

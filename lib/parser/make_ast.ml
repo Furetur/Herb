@@ -32,7 +32,7 @@ let make_extern name typ linkname : top_decl t =
 (* --- Statements --- *)
 
 let make_let_stmt raw : stmt t = located (ALetStmt raw)
-let make_expr_stmt { loc; value = expr } = { loc; value = AExprStmt expr }
+let make_expr_stmt expr = located (AExprStmt expr)
 
 (* --- Expressions --- *)
 

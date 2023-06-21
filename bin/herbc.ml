@@ -1,4 +1,5 @@
 open Cmdliner
+open Herb.Compiler
 
 let dump_ast =
   let doc = "Dump AST" in
@@ -18,7 +19,7 @@ let setup_log level =
 
 let herbc log dump_ast input_file =
   setup_log log;
-  Herb.Compiler.compile input_file dump_ast
+  run_compiler { path = input_file;  dump_ast }
 
 let herbc_t = Term.(const herbc $ Logs_cli.level () $ dump_ast $ input_file)
 

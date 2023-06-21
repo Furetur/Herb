@@ -23,8 +23,8 @@ module Pass (S : STATE) = struct
 
   (* - State -  *)
 
-  let access : S.t t = fun s -> (s, Ok s)
-  let put (s : S.t) : unit t = fun _ -> (s, Ok ())
+  let get : S.t t = fun s -> (s, Ok s)
+  let set (s : S.t) : unit t = fun _ -> (s, Ok ())
 
   (* - Combinators - *)
 
@@ -66,7 +66,25 @@ module Pass (S : STATE) = struct
     | Error errs -> fails errs
 
   let many (xs : 'a list) ~(f : 'a -> 'b t) : 'b list t =
-    let pushback xs x = List.cons <$> x <*> xs in
-    let ts = List.map xs ~f in
-    List.fold ts ~init:(return []) ~f:pushback
+    let pushback (bs : 'b list t) (b : 'b t) : 'b list t =
+      Util.pushback <$> bs <*> b
+    in
+    let rec aux (xs : 'a list) (acc : 'b list t) : 'b list t =
+      match xs with
+      | [] -> acc
+      | x :: xs ->
+          let b_t = f x in
+          aux xs (pushback acc b_t)
+    in
+    aux xs (return [])
+
+  let many_seq (xs : 'a list) ~(f : 'a -> 'b t) : 'b list t =
+    let rec aux xs acc =
+      match xs with
+      | [] -> return acc
+      | a :: xs ->
+          let* b = f a in
+          aux xs (Util.pushback acc b)
+    in
+    aux xs []
 end

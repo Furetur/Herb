@@ -160,8 +160,8 @@
   $ herbc --dump-ast ../../../../../test/parser/014_extern.herb
   { Ast.decls =
     [(Ast.AExtern
-        { Ast.name = "i"; typ = (Ast.ATypNamed "int"); linkname = "counter" })
-      ]
+        { Ast.name = "i"; typ = (Ast.ATypNamed "int"); linkname = "counter" });
+      (Ast.AEntry [])]
     }
   $ herbc --dump-ast ../../../../../test/parser/015_extern_fun.herb
   { Ast.decls =
@@ -179,19 +179,26 @@
              [(Ast.ATypNamed "string"); (Ast.ATypNamed "int");
                (Ast.ATypNamed "int")];
              ret_typ = (Ast.ATypNamed "string")};
-           linkname = "sprintf" })
-      ]
+           linkname = "sprintf" });
+      (Ast.AEntry [])]
     }
   $ herbc --dump-ast ../../../../../test/parser/016_while.herb
   { Ast.decls =
-    [(Ast.AToplevelLet
-        ("f",
-         Ast.AWhile {cond = (Ast.AIdent "x");
-           body =
-           [(Ast.AExprStmt
-               Ast.AFunCall {callee = (Ast.AIdent "print");
-                 args = [(Ast.AIdent "x")]})
-             ]}));
+    [(Ast.AExtern
+        { Ast.name = "print";
+          typ =
+          Ast.ATypFun {farg_types = [(Ast.ATypNamed "int")];
+            ret_typ = (Ast.ATypNamed "unit")};
+          linkname = "__print" });
+      (Ast.AToplevelLet ("x", (Ast.ALiteral (Ast.AInt 0))));
+      (Ast.AToplevelLet
+         ("f",
+          Ast.AWhile {cond = (Ast.AIdent "x");
+            body =
+            [(Ast.AExprStmt
+                Ast.AFunCall {callee = (Ast.AIdent "print");
+                  args = [(Ast.AIdent "x")]})
+              ]}));
       (Ast.AEntry
          [(Ast.ALetStmt ("i", (Ast.ALiteral (Ast.AInt 0))));
            (Ast.AExprStmt

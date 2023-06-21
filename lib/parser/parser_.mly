@@ -26,7 +26,7 @@
   open Make_ast
 %}
 
-%start <ast> herbfile  
+%start <raw_ast> herbfile  
 
 %%
 
@@ -55,11 +55,10 @@ let toplevel_decl :=
 
 (* ----- Statements ----- *)
 
-let stmt := 
-  | located( 
-      d=raw_let_decl; { make_let_stmt d }
-    )
-  | e=expr; { make_expr_stmt e }
+let stmt := located( 
+    | d=raw_let_decl; { make_let_stmt d }
+    | e=expr; { make_expr_stmt e}
+  )
 
 (* ----- Expressions ----- *)
 
