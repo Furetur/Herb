@@ -1,0 +1,8 @@
+let f = (x: int, y: string) -> x
+
+entry {
+    let unit = { }
+    f(1, 2)
+    f(unit, unit)
+    f("123", "1")
+}

@@ -1,0 +1,10 @@
+let first = (x: string) -> x + "end"
+
+let second = (x: string, y: string) -> {
+    first(x + y)
+}
+
+entry {
+    let x = second("a", "b")
+    x := 1
+}

@@ -133,13 +133,11 @@ and lookup_stmt { loc; value = stmt } =
   match stmt with
   | ALetStmt (name, expr) ->
       let* _ = get in
-      Caml.print_endline ("visiting let " ^ name);
       let* expr = lookup_expr expr in
       let* id = declare_new_binding name loc in
       return { loc; value = LLetStmt (id, expr) }
   | AExprStmt expr ->
       let* _ = get in
-      Caml.print_endline ("visiting expr stmt: " ^ Ast.show_expr expr);
       let* expr = lookup_expr expr in
       return { loc; value = LExprStmt expr }
 

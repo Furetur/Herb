@@ -25,7 +25,8 @@ let compile { path; dump_ast } =
     Ok ())
   else
     let* last = Lookup.lookup ast in
-    print_endline (Lookup_ast.show_lookup_ast last);
+    let* tast = Typing.check last in
+    print_endline (Typed_ast.show_typed_ast tast);
     Ok ()
 
 let run_compiler options =

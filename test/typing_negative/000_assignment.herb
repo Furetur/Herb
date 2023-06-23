@@ -1,0 +1,5 @@
+entry {
+    let x = 1
+    x := "a"
+    x := (y: int) -> "1"
+}

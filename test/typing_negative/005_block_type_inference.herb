@@ -1,0 +1,10 @@
+entry {
+    let x = { 1 }
+    x := "1"
+
+    let y = { "12" }
+    y := 12
+
+    let f = { (x: int) -> x }
+    f := (x: string) -> x
+}

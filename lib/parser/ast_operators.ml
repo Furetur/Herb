@@ -15,3 +15,18 @@ type binop =
   | AOr
   | AAnd
 [@@deriving show]
+
+let show_binop = function
+  | APlus -> "+"
+  | AMinus -> "-"
+  | AMul -> "*"
+  | ADiv -> "/"
+  | AMod -> "%"
+  | ALt -> "<"
+  | ALte -> "<="
+  | AEq -> "=="
+  | ANeq -> "!="
+  | AGte -> ">="
+  | AGt -> ">"
+  | AOr -> "||"
+  | AAnd -> "&&"
