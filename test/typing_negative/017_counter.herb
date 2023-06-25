@@ -1,0 +1,15 @@
+let next_id = {
+    let id = 0
+    let get = () -> {
+        id := id + 1
+        id
+    }
+    get
+}
+
+entry {
+    let cur_id = next_id()
+    cur_id := next_id()
+    cur_id := next_id()
+    cur_id := "1"
+}

@@ -8,4 +8,7 @@
   $ herbc ../../../../../test/lookup_negative/002_undefined_local_name.herb
   File '../../../../../test/lookup_negative/002_undefined_local_name.herb', line 2, column 12:
   Error: Undefined variable name 'z'
+  $ herbc ../../../../../test/lookup_negative/003_toplevel_block.herb
+  File '../../../../../test/lookup_negative/003_toplevel_block.herb', line 8, column 17:
+  Error: Undefined variable name 'id'
 

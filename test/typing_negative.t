@@ -60,6 +60,10 @@
   File '../../../../../test/typing_negative/015_block_type_inference_fun.herb', line 3, column 9:
   Error: Type error
   Expected '(int) -> int' but got '(string) -> string'
+  $ herbc ../../../../../test/typing_negative/017_counter.herb
+  File '../../../../../test/typing_negative/017_counter.herb', line 14, column 14:
+  Error: Type error
+  Expected 'int' but got 'string'
 
 
 

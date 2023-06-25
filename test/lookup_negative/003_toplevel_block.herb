@@ -1,0 +1,9 @@
+
+let next_id = {
+    let id = 0
+}
+
+
+entry {
+    let cur_id = id
+}

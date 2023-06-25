@@ -73,6 +73,7 @@ let operand :=
       | s = STRING; { make_string s }
       | name=ID; { make_ident name }
       | "("; formal_args=formal_args; ")"; "->"; body=expr; { make_fun_literal formal_args body }
+      | exprs=block; { make_block exprs }
     )
   | "("; e=expr; ")"; { e }
 
@@ -91,7 +92,6 @@ let primary_expr :=
 let expr := 
   | e=binop_expr; { e }
   | located(   
-    | exprs=block; { make_block exprs }
     | IF; cond=expr; then_=block; { make_if cond then_ [] }
     | IF; cond=expr; then_=block; ELSE; else_=block; { make_if cond then_ else_ }
     | WHILE; cond=expr; body=block; { make_while cond body }
