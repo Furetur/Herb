@@ -1,9 +1,19 @@
 open Cmdliner
 open Herb.Compiler
 
-let dump_ast =
-  let doc = "Dump AST" in
-  let info = Arg.info [ "dump-ast" ] ~doc in
+let dump_parsetree =
+  let doc = "Dump Parsetree" in
+  let info = Arg.info [ "dump-parsetree"; "p" ] ~doc in
+  Arg.value (Arg.flag info)
+
+let dump_lookuptree =
+  let doc = "Dump Lookuptree" in
+  let info = Arg.info [ "dump-lookuptree"; "l" ] ~doc in
+  Arg.value (Arg.flag info)
+
+let dump_typedtree =
+  let doc = "Dump Typedtree" in
+  let info = Arg.info [ "dump-typedtree"; "t" ] ~doc in
   Arg.value (Arg.flag info)
 
 let input_file =
@@ -17,11 +27,15 @@ let setup_log level =
   Logs.set_reporter (Logs_fmt.reporter ());
   ()
 
-let herbc log dump_ast input_file =
+let herbc log dump_parsetree dump_lookuptree dump_typedtree input_file =
   setup_log log;
-  run_compiler { path = input_file;  dump_ast }
+  run_compiler
+    { path = input_file; dump_parsetree; dump_lookuptree; dump_typedtree }
 
-let herbc_t = Term.(const herbc $ Logs_cli.level () $ dump_ast $ input_file)
+let herbc_t =
+  Term.(
+    const herbc $ Logs_cli.level () $ dump_parsetree $ dump_lookuptree
+    $ dump_typedtree $ input_file)
 
 let cmd =
   let doc = "Herb Compiler" in

@@ -16,16 +16,23 @@ let ( let* ) = Result.( >>= )
 
 (* - API - *)
 
-type compiler_options = { path : string; dump_ast : bool }
+type compiler_options = {
+  path : string;
+  dump_parsetree : bool;
+  dump_lookuptree : bool;
+  dump_typedtree : bool;
+}
 
-let compile { path; dump_ast } =
+let compile { path; dump_parsetree; dump_lookuptree; dump_typedtree } =
   let* ast = load_entryfile path in
-  if dump_ast then (
+  if dump_parsetree then (
     print_endline (Ast.show_ast ast);
     Ok ())
   else
     let* last = Lookup.lookup ast in
+    if dump_lookuptree then print_endline (Lookup_ast.show_lookup_ast last);
     let* tast = Typing.check last in
+    if dump_typedtree then print_endline (Typed_ast.show_typed_ast tast);
     print_endline (Typed_ast.show_typed_ast tast);
     Ok ()
 

@@ -35,7 +35,9 @@ let get_typ ident =
   let* s = get in
   match Map.find s.idents ident with
   | Some t -> return t
-  | None -> failwith (Printf.sprintf "Type for identifier '%s' not found" (show_ident ident))
+  | None ->
+      failwith
+        (Printf.sprintf "Type for identifier '%s' not found" (show_ident ident))
 
 (* ----- Pass ----- *)
 
@@ -77,7 +79,7 @@ let rec check_expr { loc; value = expr } =
   | LWhile { cond; body } -> check_while cond body loc
 
 and check_block block : (Typ.typ * Typed_ast.block) t =
-  let* stmts = many block ~f:check_stmt in
+  let* stmts = many_seq block ~f:check_stmt in
   let typ =
     match List.last stmts with
     | None -> Unit
@@ -126,27 +128,38 @@ and check_unop unop expr loc =
 and check_binop l op r loc =
   let open Ast_operators in
   let* l = check_expr l and* r = check_expr r in
-  let node = TBinOp (l, op, r) in
-  let single_typ_operator typ =
-    let lt = l.value.typ in
-    let rt = r.value.typ in
-    if Typ.equal_typ lt typ && Typ.equal_typ rt typ then
-      return { loc; value = { typ; node } }
+  let lt = l.value.typ in
+  let rt = r.value.typ in
+  let make_node typ = { loc; value = { typ; node = TBinOp (l, op, r) } } in
+  let simple_operator ~left ~right ~ret =
+    if Typ.equal_typ lt left && Typ.equal_typ rt right then
+      return (make_node ret)
     else fail (Err_templates.wrong_binary_op_arguments lt op rt loc)
+  in
+  let arithmetic_operator = simple_operator ~left:Int ~right:Int ~ret:Int in
+  let compatison_operator = simple_operator ~left:Int ~right:Int ~ret:Bool in
+  let logic_operator = simple_operator ~left:Bool ~right:Bool ~ret:Bool in
+  let plus_operator =
+    match (l.value.typ, r.value.typ) with
+    | Int, Int -> return (make_node Int)
+    | String, String -> return (make_node String)
+    | _ ->
+        fail
+          (Err_templates.wrong_binary_op_arguments l.value.typ op r.value.typ
+             loc)
+  in
+  let equality_operator =
+    match (lt, rt) with
+    | Int, Int | Bool, Bool | String, String -> return (make_node Bool)
+    | _, _ -> fail (Err_templates.wrong_binary_op_arguments lt op rt loc)
   in
 
   match op with
-  | APlus -> (
-      match (l.value.typ, r.value.typ) with
-      | Int, Int -> return { loc; value = { typ = Int; node } }
-      | String, String -> return { loc; value = { typ = String; node } }
-      | _ ->
-          fail
-            (Err_templates.wrong_binary_op_arguments l.value.typ op r.value.typ
-               loc))
-  | AMinus | AMul | ADiv | AMod | ALt | ALte | AEq | ANeq | AGte | AGt ->
-      single_typ_operator Int
-  | AOr | AAnd -> single_typ_operator Bool
+  | APlus -> plus_operator
+  | AMinus | AMul | ADiv | AMod -> arithmetic_operator
+  | ALt | ALte | AGte | AGt -> compatison_operator
+  | AEq | ANeq -> equality_operator
+  | AOr | AAnd -> logic_operator
 
 and check_funcall callee args loc =
   let* callee = check_expr callee and* args = many args ~f:check_expr in
@@ -197,14 +210,14 @@ and check_stmt { loc; value = stmt } =
 
 (* - Top Level - *)
 
-let check_toplevel { loc; value = (id, expr) } =
+let check_toplevel { loc; value = id, expr } =
   let* expr = check_expr expr in
   let* _ = set_typ id expr.value.typ in
-  return { loc; value = (id, expr)}
+  return { loc; value = (id, expr) }
 
 let check_entry { loc; value = entry } =
   let* _, entry = check_block entry in
-  return { loc; value = entry } 
+  return { loc; value = entry }
 
 (* - Modules - *)
 
@@ -212,9 +225,10 @@ let check_ast { loc; value = { Lookup_ast.decls; entry } } =
   (* TODO: predeclare identifiers *)
   let* decls = many decls ~f:check_toplevel in
   let* entry = check_entry entry in
-  return { loc; value = { decls; entry }}
+  return { loc; value = { decls; entry } }
 
 (* Runners *)
 let init = { idents = Map.empty (module Ident_comparator) }
 
-let check (ast: lookup_ast): typed_ast Pass.result = run_pass (check_ast ast) ~init
+let check (ast : lookup_ast) : typed_ast Pass.result =
+  run_pass (check_ast ast) ~init
