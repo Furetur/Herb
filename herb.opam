@@ -21,6 +21,7 @@ depends: [
   "logs"
   "ppx_deriving"
   "location"
+  "ollvm"
   "odoc" {with-doc}
 ]
 build: [
