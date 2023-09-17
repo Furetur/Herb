@@ -43,6 +43,15 @@ let toplevel_nonliteral_expression loc =
 
 (* - Type Errors - *)
 
+let entry_wrong_return_type actual loc =
+  let text =
+    Printf.sprintf
+      "Entry must return a value of type 'unit' or 'int' but got '%s'"
+      (Typ.show_typ actual)
+  in
+
+  err ~title:"Entry return type error" ~text loc
+
 let wrong_type expected actual loc =
   let text =
     Printf.sprintf "Expected '%s' but got '%s'" (Typ.show_typ expected)

@@ -64,7 +64,14 @@
   File '../../../../../test/typing_negative/017_counter.herb', line 16, column 14:
   Error: Type error
   Expected 'int' but got 'string'
-
+  $ herbc ../../../../../test/typing_negative/018_entry_return_type_error.herb
+  File '../../../../../test/typing_negative/018_entry_return_type_error.herb', line 1, column 0:
+  Error: Entry return type error
+  Entry must return a value of type 'unit' or 'int' but got 'string'
+  $ herbc ../../../../../test/typing_negative/019_entry_return_type_error2.herb
+  File '../../../../../test/typing_negative/019_entry_return_type_error2.herb', line 1, column 0:
+  Error: Entry return type error
+  Entry must return a value of type 'unit' or 'int' but got '() -> int'
 
 
 

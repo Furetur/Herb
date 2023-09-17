@@ -216,8 +216,16 @@ let check_toplevel { loc; value = id, expr } =
   return { loc; value = (id, expr) }
 
 let check_entry { loc; value = entry } =
-  let* _, entry = check_block entry in
-  return { loc; value = entry }
+  let* typ, entry = check_block entry in
+  match typ with
+  | Typ.Int -> return { loc; value = entry }
+  | Typ.Unit ->
+      let zero_expr =
+        Loc.bad_located { node = TLiteral (TInt 0); typ = Typ.Int }
+      in
+      let zero = { loc = Loc.bad_loc; value = TExprStmt zero_expr } in
+      return { loc; value = Util.pushback entry zero }
+  | _ -> fail (Err_templates.entry_wrong_return_type typ loc)
 
 (* - Modules - *)
 
