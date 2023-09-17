@@ -1,5 +1,5 @@
 
-let next_id = {
+let next_id = () -> {
     let id = 0
 }
 

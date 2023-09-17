@@ -1,5 +1,4 @@
-let x = { }
-
 entry {
+    let x = { }
     x := 1
 }

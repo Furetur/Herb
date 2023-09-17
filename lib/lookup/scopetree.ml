@@ -63,8 +63,6 @@ let resolve_name t name =
     match Map.find scope.tbl name with
     | Some id -> Some id
     | None -> (
-        match scope.kind with
-        | Local { parent } -> aux parent
-        | Global -> None)
+        match scope.kind with Local { parent } -> aux parent | Global -> None)
   in
   aux t.cur_scope

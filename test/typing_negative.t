@@ -3,7 +3,7 @@
   Error: Type error
   Expected 'int' but got 'string'
   $ herbc ../../../../../test/typing_negative/001_unit.herb
-  File '../../../../../test/typing_negative/001_unit.herb', line 4, column 9:
+  File '../../../../../test/typing_negative/001_unit.herb', line 3, column 9:
   Error: Type error
   Expected 'unit' but got 'int'
   $ herbc ../../../../../test/typing_negative/002_arguments.herb
@@ -61,7 +61,7 @@
   Error: Type error
   Expected '(int) -> int' but got '(string) -> string'
   $ herbc ../../../../../test/typing_negative/017_counter.herb
-  File '../../../../../test/typing_negative/017_counter.herb', line 14, column 14:
+  File '../../../../../test/typing_negative/017_counter.herb', line 16, column 14:
   Error: Type error
   Expected 'int' but got 'string'
 

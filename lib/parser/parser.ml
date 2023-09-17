@@ -7,9 +7,9 @@ let parse file : (Ast.ast Pass.result, [> `FileError of string ]) Result.t =
   let aux_parse chan =
     let buf = Lexing.from_channel chan in
     Lexing.set_filename buf (Fpath.to_string file);
-    try 
+    try
       let raw_ast = Parser_.herbfile Lexer_.token buf in
-      let loc = Loc.infile_loc file in  
+      let loc = Loc.infile_loc file in
       Ok (Ok { Loc.loc; value = raw_ast })
     with Lexer_.Error | Parser_.Error ->
       let loc = get_loc buf in

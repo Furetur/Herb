@@ -57,7 +57,7 @@ module Pass (S : STATE) = struct
     y
 
   let ( <* ) x y =
-    let* x in
+    let* x = x in
     let* _ = y in
     return x
 

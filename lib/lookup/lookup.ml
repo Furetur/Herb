@@ -148,13 +148,13 @@ let lookup_top_extern { loc; value = { name; typ; linkname; _ } } =
   let expr = { loc; value = LExtern { typ; linkname } } in
   return { loc; value = (ident, expr) }
 
-let lookup_predeclare_top_letdecl { loc; value = id, expr } =
-  let* ident = declare_new_binding id loc in
-  return { loc; value = (ident, expr) }
-
-let lookup_top_letdecl_expressions { loc; value = ident, expr } =
-  let* expr = lookup_expr expr in
-  return { loc; value = (ident, expr) }
+let lookup_top_letdecl_expression { loc; value = ident, expr } =
+  let* ident = declare_new_binding ident loc in
+  match expr.value with
+  | ALiteral _ ->
+      let* expr = lookup_expr expr in
+      return { loc; value = (ident, expr) }
+  | _ -> fail (Err_templates.toplevel_nonliteral_expression loc)
 
 let lookup_entry { loc; value = block } =
   let* block = lookup_block block in
@@ -182,8 +182,7 @@ let lookup_ast ({ loc; value = { decls } } : ast) : lookup_ast t =
   let* externs = many externs ~f:lookup_top_extern in
 
   (* Predeclare and then lookup let declarations *)
-  let* letdecls = many letdecls ~f:lookup_predeclare_top_letdecl in
-  let* letdecls = many letdecls ~f:lookup_top_letdecl_expressions in
+  let* letdecls = many letdecls ~f:lookup_top_letdecl_expression in
 
   (* Lookup entry *)
   let* entry =

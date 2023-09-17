@@ -16,7 +16,7 @@ let show_ident = function
 module Ident_comparator = struct
   type t = ident
 
-  let compare x y = Caml.compare x y
+  let compare x y = Stdlib.compare x y
   let sexp_of_t x = Sexp.Atom (show_ident x)
 
   include (val Comparator.make ~compare ~sexp_of_t)

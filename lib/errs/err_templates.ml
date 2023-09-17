@@ -36,6 +36,11 @@ let toplevel_redeclaration name loc =
   let text = "Top level names must be unique" in
   err ~title ~text loc
 
+let toplevel_nonliteral_expression loc =
+  let title = "Top level variable must be initialized to a literal" in
+  let text = "The provided value is not a literal" in
+  err ~title ~text loc
+
 (* - Type Errors - *)
 
 let wrong_type expected actual loc =
@@ -70,5 +75,9 @@ let callee_not_function actual_typ loc =
 
 let if_branches_different_types then_typ else_typ loc =
   let title = "Both if branches must have equivalent types" in
-  let text = Printf.sprintf "The type of 'then' branch is '%s', the type of 'else' branch is '%s'" (Typ.show_typ then_typ) (Typ.show_typ else_typ) in
+  let text =
+    Printf.sprintf
+      "The type of 'then' branch is '%s', the type of 'else' branch is '%s'"
+      (Typ.show_typ then_typ) (Typ.show_typ else_typ)
+  in
   err ~title ~text loc
