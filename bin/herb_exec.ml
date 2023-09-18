@@ -1,27 +1,33 @@
+open Base
 open Cmdliner
+open Herb
 open Herb.Compiler
+
+let ( let* ) = Result.( >>= )
 
 let input_file =
   let doc = "An Herb file" in
   let info = Arg.info [] ~doc in
   Arg.required (Arg.pos 0 (Arg.some Arg.file) None info)
 
+let run_binary_file path = Stdlib.Sys.command (Fpath.to_string path)
+
 let exec input_file =
-  let outpath =
-    run_compiler
-      {
-        path = input_file;
-        outpath = None;
-        dump_parsetree = false;
-        dump_lookuptree = false;
-        dump_typedtree = false;
-      }
+  let result =
+    let* outpath =
+      compile
+        {
+          path = input_file;
+          outpath = None;
+          dump_parsetree = false;
+          dump_lookuptree = false;
+          dump_typedtree = false;
+        }
+    in
+    let exitcode = run_binary_file outpath in
+    Ok exitcode
   in
-  match outpath with
-  | Some outpath ->
-      let exitcode = Stdlib.Sys.command (Fpath.to_string outpath) in
-      Stdlib.exit exitcode
-  | None -> Stdlib.exit 1
+  Errs.handle_comp_result result
 
 let exec_t = Term.(const exec $ input_file)
 
@@ -30,4 +36,4 @@ let cmd =
   let info = Cmd.info "herb_exec" ~doc in
   Cmd.v info exec_t
 
-let () = Stdlib.exit (Cmd.eval cmd)
+let () = Stdlib.exit (Cmd.eval' cmd)

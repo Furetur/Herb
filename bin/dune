@@ -11,3 +11,10 @@
  (package herb)
  (modules herb_exec)
  (libraries cmdliner herb))
+
+(executable
+ (public_name herb_parse)
+ (name herb_parse)
+ (package herb)
+ (modules herb_parse)
+ (libraries cmdliner herb))

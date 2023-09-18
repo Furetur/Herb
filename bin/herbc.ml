@@ -1,5 +1,9 @@
+open Base
 open Cmdliner
+open Herb
 open Herb.Compiler
+
+let ( let* ) = Result.( >>= )
 
 let dump_parsetree =
   let doc = "Dump Parsetree" in
@@ -35,17 +39,20 @@ let setup_log level =
 let herbc log dump_parsetree dump_lookuptree dump_typedtree input_file
     output_file =
   setup_log log;
-  let _ =
-    run_compiler
-      {
-        path = input_file;
-        outpath = output_file;
-        dump_parsetree;
-        dump_lookuptree;
-        dump_typedtree;
-      }
+  let result =
+    let* _ =
+      compile
+        {
+          path = input_file;
+          outpath = output_file;
+          dump_parsetree;
+          dump_lookuptree;
+          dump_typedtree;
+        }
+    in
+    Ok ()
   in
-  ()
+  Errs.handle_comp_result_unit result
 
 let herbc_t =
   Term.(
@@ -57,4 +64,4 @@ let cmd =
   let info = Cmd.info "herbc" ~doc in
   Cmd.v info herbc_t
 
-let () = Stdlib.exit (Cmd.eval cmd)
+let () = Stdlib.exit (Cmd.eval' cmd)

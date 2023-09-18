@@ -1,5 +1,8 @@
 open Base
+open Stdio
 open Loc
+
+(* ----- Errors ----- *)
 
 type err = { loc : loc; title : string; text : string }
 
@@ -19,3 +22,18 @@ let show_simple_err ~title ~text =
   head ^ body
 
 let show_errs errs = String.concat ~sep:"\n\n" (List.map errs ~f:show_err)
+
+(* ----- Compilation Result ----- *)
+
+type 'a comp_result = ('a, err list) Result.t
+type exit_code = int
+
+let handle_comp_result r : exit_code =
+  match r with
+  | Ok x -> x
+  | Error errs ->
+      print_endline (show_errs errs);
+      1
+
+let handle_comp_result_unit r : exit_code =
+  handle_comp_result (Result.map r ~f:(fun () -> 0))

@@ -1,8 +1,8 @@
-  $ herbc -p ../../../../../test/parser/000_empty.herb
+  $ herb_parse ../../../../../test/parser/000_empty.herb
   { Ast.decls = [] }
-  $ herbc -p ../../../../../test/parser/001_empty_entry.herb
+  $ herb_parse ../../../../../test/parser/001_empty_entry.herb
   { Ast.decls = [(Ast.AEntry [])] }
-  $ herbc -p ../../../../../test/parser/002_simple_arithmetics.herb
+  $ herb_parse ../../../../../test/parser/002_simple_arithmetics.herb
   { Ast.decls =
     [(Ast.AEntry
         [(Ast.AExprStmt
@@ -13,7 +13,7 @@
           ])
       ]
     }
-  $ herbc -p ../../../../../test/parser/003_complex_arithmetics.herb
+  $ herb_parse ../../../../../test/parser/003_complex_arithmetics.herb
   { Ast.decls =
     [(Ast.AEntry
         [(Ast.AExprStmt
@@ -36,7 +36,7 @@
           ])
       ]
     }
-  $ herbc -p ../../../../../test/parser/004_assign_associativity.herb
+  $ herb_parse ../../../../../test/parser/004_assign_associativity.herb
   { Ast.decls =
     [(Ast.AEntry
         [(Ast.AExprStmt
@@ -49,9 +49,9 @@
           ])
       ]
     }
-  $ herbc -p ../../../../../test/parser/005_toplevel_let.herb
+  $ herb_parse ../../../../../test/parser/005_toplevel_let.herb
   { Ast.decls = [(Ast.AToplevelLet ("f", (Ast.ALiteral (Ast.AInt 14))))] }
-  $ herbc -p ../../../../../test/parser/006_if_expr.herb
+  $ herb_parse ../../../../../test/parser/006_if_expr.herb
   { Ast.decls =
     [(Ast.AToplevelLet ("a", (Ast.ALiteral (Ast.AInt 2))));
       (Ast.AToplevelLet
@@ -72,7 +72,7 @@
            ])
       ]
     }
-  $ herbc -p ../../../../../test/parser/007_fun_call.herb
+  $ herb_parse ../../../../../test/parser/007_fun_call.herb
   { Ast.decls =
     [(Ast.AToplevelLet
         ("x",
@@ -85,7 +85,7 @@
            ])
       ]
     }
-  $ herbc -p ../../../../../test/parser/008_fun_literal.herb
+  $ herb_parse ../../../../../test/parser/008_fun_literal.herb
   { Ast.decls =
     [(Ast.AToplevelLet
         ("f",
@@ -103,10 +103,11 @@
            ])
       ]
     }
-  $ herbc -p ../../../../../test/parser/009_local_let.herb
+  $ herb_parse ../../../../../test/parser/009_local_let.herb
   File '../../../../../test/parser/009_local_let.herb', line 3, column 12:
   Error: Syntax error
-  $ herbc -p ../../../../../test/parser/010_fact.herb
+  [1]
+  $ herb_parse ../../../../../test/parser/010_fact.herb
   { Ast.decls =
     [(Ast.AToplevelLet
         ("fact",
@@ -138,10 +139,11 @@
            ])
       ]
     }
-  $ herbc -p ../../../../../test/parser/011_imports.herb
+  $ herb_parse ../../../../../test/parser/011_imports.herb
   File '../../../../../test/parser/011_imports.herb', line 1, column 0:
   Error: Syntax error
-  $ herbc -p ../../../../../test/parser/012_string_literal.herb
+  [1]
+  $ herb_parse ../../../../../test/parser/012_string_literal.herb
   { Ast.decls =
     [(Ast.AToplevelLet ("a", (Ast.ALiteral (Ast.AString "123"))));
       (Ast.AToplevelLet
@@ -154,16 +156,17 @@
            ])
       ]
     }
-  $ herbc -p ../../../../../test/parser/013_for_numeric.herb
+  $ herb_parse ../../../../../test/parser/013_for_numeric.herb
   File '../../../../../test/parser/013_for_numeric.herb', line 1, column 8:
   Error: Syntax error
-  $ herbc -p ../../../../../test/parser/014_extern.herb
+  [1]
+  $ herb_parse ../../../../../test/parser/014_extern.herb
   { Ast.decls =
     [(Ast.AExtern
         { Ast.name = "i"; typ = (Ast.ATypNamed "int"); linkname = "counter" });
       (Ast.AEntry [])]
     }
-  $ herbc -p ../../../../../test/parser/015_extern_fun.herb
+  $ herb_parse ../../../../../test/parser/015_extern_fun.herb
   { Ast.decls =
     [(Ast.AExtern
         { Ast.name = "printint";
@@ -182,7 +185,7 @@
            linkname = "sprintf" });
       (Ast.AEntry [])]
     }
-  $ herbc -p ../../../../../test/parser/016_while.herb
+  $ herb_parse ../../../../../test/parser/016_while.herb
   { Ast.decls =
     [(Ast.AExtern
         { Ast.name = "print";
