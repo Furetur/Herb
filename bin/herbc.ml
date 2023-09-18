@@ -35,14 +35,17 @@ let setup_log level =
 let herbc log dump_parsetree dump_lookuptree dump_typedtree input_file
     output_file =
   setup_log log;
-  run_compiler
-    {
-      path = input_file;
-      outpath = output_file;
-      dump_parsetree;
-      dump_lookuptree;
-      dump_typedtree;
-    }
+  let _ =
+    run_compiler
+      {
+        path = input_file;
+        outpath = output_file;
+        dump_parsetree;
+        dump_lookuptree;
+        dump_typedtree;
+      }
+  in
+  ()
 
 let herbc_t =
   Term.(
@@ -51,7 +54,7 @@ let herbc_t =
 
 let cmd =
   let doc = "Herb Compiler" in
-  let info = Cmd.info "herb" ~doc in
+  let info = Cmd.info "herbc" ~doc in
   Cmd.v info herbc_t
 
-let () = exit (Cmd.eval cmd)
+let () = Stdlib.exit (Cmd.eval cmd)

@@ -4,3 +4,10 @@
  (package herb)
  (modules herbc)
  (libraries cmdliner herb))
+
+(executable
+ (public_name herb_exec)
+ (name herb_exec)
+ (package herb)
+ (modules herb_exec)
+ (libraries cmdliner herb))

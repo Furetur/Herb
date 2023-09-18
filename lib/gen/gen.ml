@@ -16,7 +16,7 @@ type state = {
   generated_code : B.block list;
 }
 
-module Pass = Pass.Pass (struct
+module Pass = Pass.NoErrors (struct
   type t = state
 end)
 
@@ -88,13 +88,10 @@ and gen_func m name block =
   let init_state =
     { modul = m; cur_basic_block = B.block entry_bb []; generated_code = [] }
   in
-  let res = run_pass gen_func_body ~init:init_state in
-  match res with
-  | Error _ -> assert false
-  | Ok (m, code) ->
-      let func_def = B.define func [] code in
-      let m = M.definition m func_def in
-      m
+  let m, code = run_pass gen_func_body ~init:init_state in
+  let func_def = B.define func [] code in
+  let m = M.definition m func_def in
+  m
 
 let gen_entry m entry = gen_func m "main" entry
 

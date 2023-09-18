@@ -1,2 +1,2 @@
 (cram
- (deps %{bin:herbc}))
+ (deps %{bin:herbc} %{bin:herb_exec}))

@@ -1,3 +1,5 @@
 _build
 .vscode
 experiments
+**/*.ll
+**/*.exe

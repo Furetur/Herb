@@ -18,7 +18,7 @@ let get_paths inpath outpath =
   let* outpath =
     match outpath with
     | Some path -> parse_path path
-    | None -> Ok (Fpath.rem_ext inpath)
+    | None -> Ok (Fpath.set_ext ".exe" inpath)
   in
   Ok (inpath, llpath, outpath)
 
@@ -55,7 +55,7 @@ let compile { path; outpath; dump_parsetree; dump_lookuptree; dump_typedtree } =
   let* ast = load_entryfile inpath in
   if dump_parsetree then (
     print_endline (Ast.show_ast ast);
-    Ok ())
+    Ok outpath)
   else
     let* last = Lookup.lookup ast in
     if dump_lookuptree then print_endline (Lookup_ast.show_lookup_ast last);
@@ -64,9 +64,11 @@ let compile { path; outpath; dump_parsetree; dump_lookuptree; dump_typedtree } =
     let m = Gen.gen_module tast in
     write_ll m llpath;
     run_clang llpath outpath;
-    Ok ()
+    Ok outpath
 
 let run_compiler options =
   match compile options with
-  | Ok _ -> ()
-  | Error errs -> print_endline (Errs.show_errs errs)
+  | Ok outpath -> Some outpath
+  | Error errs ->
+      print_endline (Errs.show_errs errs);
+      None
