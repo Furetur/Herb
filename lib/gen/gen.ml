@@ -39,6 +39,11 @@ let assert_type expected_typ { typ = actual_typ; _ } =
 let assert_type' expected_typ { value = typed; _ } =
   assert_type expected_typ typed
 
+let assert_types_eq typ1 typ2 =
+  if not (Typ.equal_typ typ1 typ2) then
+    internal_err "Expected types '%s' and '%s' to be equal" (Typ.show_typ typ1)
+      (Typ.show_typ typ2) ()
+
 (* ----- State ------ *)
 
 let make_lab name =
@@ -94,22 +99,48 @@ let rec gen_unop_expr unop expr : V.t t =
       return reg
 
 and gen_binop_expr lexpr binop rexpr : V.t t =
-  let int_binop instr =
-    assert_type' Typ.Int lexpr;
-    assert_type' Typ.Int rexpr;
+  let gen_binop instr =
     let* l = gen_expr lexpr in
     let* r = gen_expr rexpr in
     let* reg = make_reg T.i32 in
     let* _ = gen_instr (reg <-- instr l r) in
     return reg
   in
+  let gen_binop_with_typecheck ~ltyp ~rtyp instr =
+    assert_type' ltyp lexpr;
+    assert_type' rtyp rexpr;
+    gen_binop instr
+  in
+  let equality instr =
+    let { value = { typ = ltyp; _ }; _ } = lexpr in
+    let { value = { typ = rtyp; _ }; _ } = rexpr in
+    assert_types_eq ltyp rtyp;
+    gen_binop instr
+  in
 
+  let arithmetic instr =
+    gen_binop_with_typecheck ~ltyp:Typ.Int ~rtyp:Typ.Int instr
+  in
+  let cmp instr = gen_binop_with_typecheck ~ltyp:Typ.Int ~rtyp:Typ.Int instr in
+  let logic instr =
+    gen_binop_with_typecheck ~ltyp:Typ.Bool ~rtyp:Typ.Bool instr
+  in
+
+  let open Ast_operators in
   match binop with
-  | Ast_operators.APlus -> int_binop I.add
-  | Ast_operators.AMinus -> int_binop I.sub
-  | Ast_operators.AMul -> int_binop I.mul
-  | Ast_operators.ADiv -> int_binop I.sdiv
-  | _ -> not_implemented ()
+  | APlus -> arithmetic I.add
+  | AMinus -> arithmetic I.sub
+  | AMul -> arithmetic I.mul
+  | ADiv -> arithmetic I.sdiv
+  | AMod -> arithmetic I.srem
+  | ALt -> cmp I.slt
+  | ALte -> cmp I.sle
+  | AGt -> cmp I.sgt
+  | AGte -> cmp I.sge
+  | AEq -> equality I.eq
+  | ANeq -> equality I.ne
+  | AOr -> logic I.or_
+  | AAnd -> logic I.and_
 
 and gen_expr { value = { node = expr; _ }; _ } : V.t t =
   match expr with
