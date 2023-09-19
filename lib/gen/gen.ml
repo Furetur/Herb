@@ -1,3 +1,4 @@
+open Base
 module V = Ollvm.Ez.Value
 module I = Ollvm.Ez.Instr
 module B = Ollvm.Ez.Block
@@ -24,7 +25,19 @@ open Pass
 
 (* ----- Helpers ------ *)
 
+let ignore_loc f { value; _ } = f value
 let not_implemented () = failwith "Not implemented"
+let unreachable () = failwith "Unreachable"
+let internal_err = Printf.failwithf
+
+let assert_type expected_typ { typ = actual_typ; _ } =
+  if not (Typ.equal_typ expected_typ actual_typ) then
+    internal_err "Expected type '%s', but received '%s'"
+      (Typ.show_typ expected_typ)
+      (Typ.show_typ actual_typ) ()
+
+let assert_type' expected_typ { value = typed; _ } =
+  assert_type expected_typ typed
 
 (* ----- State ------ *)
 
@@ -34,7 +47,7 @@ let make_lab name =
   let* _ = set { s with modul = m } in
   return lab
 
-let make_reg typ ?(name = "") =
+let make_reg ?(name = "") typ =
   let* s = get in
   let m, reg = M.local s.modul typ name in
   let* _ = set { s with modul = m } in
@@ -65,9 +78,44 @@ let in_basicblock lab f =
 
 (* ----- Pass ----- *)
 
-let gen_expr { value = { node = expr; _ }; _ } =
+let gen_literal = function
+  | TInt i -> return (V.i32 i)
+  | TBool true -> return (V.i1 1)
+  | TBool false -> return (V.i1 0)
+  | _ -> not_implemented ()
+
+let rec gen_unop_expr unop expr : V.t t =
+  assert_type' Typ.Bool expr;
+  let* v = gen_expr expr in
+  match unop with
+  | Ast_operators.ANot ->
+      let* reg = make_reg T.i1 in
+      let* _ = gen_instr (reg <-- I.xor v (V.i1 1)) in
+      return reg
+
+and gen_binop_expr lexpr binop rexpr : V.t t =
+  let int_binop instr =
+    assert_type' Typ.Int lexpr;
+    assert_type' Typ.Int rexpr;
+    let* l = gen_expr lexpr in
+    let* r = gen_expr rexpr in
+    let* reg = make_reg T.i32 in
+    let* _ = gen_instr (reg <-- instr l r) in
+    return reg
+  in
+
+  match binop with
+  | Ast_operators.APlus -> int_binop I.add
+  | Ast_operators.AMinus -> int_binop I.sub
+  | Ast_operators.AMul -> int_binop I.mul
+  | Ast_operators.ADiv -> int_binop I.sdiv
+  | _ -> not_implemented ()
+
+and gen_expr { value = { node = expr; _ }; _ } : V.t t =
   match expr with
-  | TLiteral (TInt i) -> return (V.i32 i)
+  | TLiteral lit -> gen_literal lit
+  | TUnOp (unop, expr) -> gen_unop_expr unop expr
+  | TBinOp (l, binop, r) -> gen_binop_expr l binop r
   | _ -> not_implemented ()
 
 let rec gen_block { value = block; _ } =
