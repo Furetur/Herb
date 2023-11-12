@@ -3,3 +3,4 @@ _build
 experiments
 **/*.ll
 **/*.exe
+**/.DS_Store
