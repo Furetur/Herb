@@ -1,27 +1,13 @@
-open Base
 open Cmdliner
-open Herb
 open Herb.Compiler
 
-let ( let* ) = Result.( >>= )
-
-let dump_parsetree =
-  let doc = "Dump Parsetree" in
-  let info = Arg.info [ "dump-parsetree"; "p" ] ~doc in
-  Arg.value (Arg.flag info)
-
-let dump_lookuptree =
-  let doc = "Dump Lookuptree" in
-  let info = Arg.info [ "dump-lookuptree"; "l" ] ~doc in
-  Arg.value (Arg.flag info)
-
-let dump_typedtree =
-  let doc = "Dump Typedtree" in
-  let info = Arg.info [ "dump-typedtree"; "t" ] ~doc in
+let only_parsetree =
+  let doc = "Only Parsetree" in
+  let info = Arg.info [ "only-parsetree"; "parse" ] ~doc in
   Arg.value (Arg.flag info)
 
 let input_file =
-  let doc = "A Herb file" in
+  let doc = "An Herb file" in
   let info = Arg.info [] ~doc in
   Arg.required (Arg.pos 0 (Arg.some Arg.file) None info)
 
@@ -36,28 +22,14 @@ let setup_log level =
   Logs.set_reporter (Logs_fmt.reporter ());
   ()
 
-let herbc log dump_parsetree dump_lookuptree dump_typedtree input_file
-    output_file =
+let herbc log only_parsetree input_file output_file =
   setup_log log;
-  let result =
-    let* _ =
-      compile
-        {
-          path = input_file;
-          outpath = output_file;
-          dump_parsetree;
-          dump_lookuptree;
-          dump_typedtree;
-        }
-    in
-    Ok ()
-  in
-  Errs.handle_comp_result_unit result
+  let _ = compile { path = input_file; outpath = output_file; only_parsetree } in
+  0
 
 let herbc_t =
   Term.(
-    const herbc $ Logs_cli.level () $ dump_parsetree $ dump_lookuptree
-    $ dump_typedtree $ input_file $ output_file)
+    const herbc $ Logs_cli.level () $ only_parsetree $ input_file $ output_file)
 
 let cmd =
   let doc = "Herb Compiler" in

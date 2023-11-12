@@ -31,20 +31,16 @@ rule token = parse
 | "if" { IF }
 | "else" { ELSE }
 | "while" { WHILE }
-| "for" { FOR }
-| "extern" { EXTERN }
+| "return" { RETURN }
 
 (* Atoms *)
 | id as name
     { ID (name) }
 | ('-'? digit+) as i
     { INT (int_of_string i) }
-| '"' (string_literal_char* as s) '"'
-    { STRING ( s ) }
 
 (* Operators *)
 | "="   { DEF }
-| ":="  { ASSIGN }
 
 | '+'  { PLUS }
 | '-'  { MINUS }
@@ -52,28 +48,13 @@ rule token = parse
 | '/'  { DIV }
 | '%'  { MOD }
 
-| "||" { OR }
-| "&&" { AND }
-| '!'  { NOT }
-
-| '<'  { LT }
-| "<=" { LTE }
-| "==" { EQ }
-| "!=" { NEQ }
-| ">=" { GTE }
-| ">"  { GT }
-
 
 (* Punctuation *)
-| ','  { COMMA }
-| ':'  { COLON }
-| "->" { ARROW }
 | '('  { LPAREN }
 | ')'  { RPAREN }
 | '{'  { LBRACE }
 | '}'  { RBRACE }
-| ".." { DOTDOT }
-| '.'  { DOT }
+| ';'  { SEMI }
 | eof  { EOF }
 
 | _ { raise Error }
