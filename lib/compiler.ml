@@ -19,5 +19,10 @@ let compile { path; outpath; only_parsetree } =
   in
   (* Compile *)
   let parsetree = Parser.parse path in
-  if only_parsetree then print_endline (Parsetree.show_parsetree parsetree);
-  Ok outpath
+  if only_parsetree then (
+    print_endline (Parsetree.show_parsetree parsetree);
+    Ok outpath)
+  else
+    let ir = Lowering.lower parsetree in
+    print_endline (Ir_prettyprint.show_ir ir);
+    Ok outpath

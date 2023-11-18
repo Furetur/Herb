@@ -24,7 +24,9 @@ let setup_log level =
 
 let herbc log only_parsetree input_file output_file =
   setup_log log;
-  let _ = compile { path = input_file; outpath = output_file; only_parsetree } in
+  let _ =
+    compile { path = input_file; outpath = output_file; only_parsetree }
+  in
   0
 
 let herbc_t =

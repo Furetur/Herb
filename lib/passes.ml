@@ -46,7 +46,7 @@ module NoErrors (S : STATE) = struct
       | [] -> return acc
       | a :: xs ->
           let* b = f a in
-          aux xs (acc @ [b])
+          aux xs (acc @ [ b ])
     in
     aux xs []
 end
