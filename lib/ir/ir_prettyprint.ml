@@ -28,7 +28,6 @@ let show_terminator = function
       sprintf "if %s (jump %s) else (jump %s)" (show_expr cond)
         (show_label if_true) (show_label if_false)
   | Return e -> sprintf "return %s" (show_expr e)
-  | ReturnVoid -> "return void"
 
 let show_basicblock { label; body; terminator } =
   let label = show_label label ^ ":\n" in

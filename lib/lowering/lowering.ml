@@ -128,7 +128,10 @@ let lower ({ entry } : parsetree) : ir =
   let pass_parsetree =
     pass_stmts entry
     *> let* s = get in
-       let cur_block = assemble_cur_block s.cur_label s.cur_block ReturnVoid in
+       let cur_block =
+         assemble_cur_block s.cur_label s.cur_block
+           (Return (Constant (ConstantInt 0)))
+       in
        let blocks = List.rev (cur_block :: s.blocks) in
        match blocks with
        | entry_block :: other_blocks ->

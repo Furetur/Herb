@@ -31,7 +31,6 @@ type terminator =
   | Jump of label
   | CondBranch of { cond : expr; if_true : label; if_false : label }
   | Return of expr
-  | ReturnVoid
 
 type basicblock = { label : label; body : stmt list; terminator : terminator }
 

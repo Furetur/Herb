@@ -13,5 +13,6 @@ let hoist_all_locals block =
         | _ -> aux acc stmts)
   in
   let result = aux [] block in
-  assert (not (List.contains_dup result ~compare:String.compare));
+  if List.contains_dup result ~compare:String.compare then
+    Printf.failwithf "There are duplicate identifiers" ();
   List.rev result
