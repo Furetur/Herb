@@ -20,6 +20,12 @@ and expr =
   | Constant of constant
   | Ident of ident
   | Binop of expr * binop * expr
+  | Builtin of builtin
+
+and builtin =
+  | Print of expr
+  | Println of expr
+  | Assert of expr
 
 (* ----- Statements ----- *)
 and lvalue = LvalueIdent of ident

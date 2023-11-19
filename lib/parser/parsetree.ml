@@ -15,6 +15,7 @@ and expr =
   | Constant of constant
   | Ident of ident
   | Binop of expr * binop * expr
+  | Call of { callee : expr; args : expr list }
 [@@deriving show]
 
 (* ----- Declarations ----- *)

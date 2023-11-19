@@ -10,7 +10,7 @@
 %token PLUS "+" MINUS "-" MUL "*" DIV "/" MOD "%"
 
 // Punctuation
-%token SEMI ";" LPAREN "(" RPAREN ")" LBRACE "{" RBRACE "}"
+%token SEMI ";" LPAREN "(" RPAREN ")" LBRACE "{" RBRACE "}" COMMA ","
 
 // Keywords
 %token LET ENTRY IF ELSE WHILE RETURN
@@ -73,6 +73,7 @@ let operand :=
   | i = INT; { Constant (ConstantInt i) }
   | name=ID; { Ident name }
   | "("; e=expr; ")"; { e }
+  | callee=expr; "("; args=separated_list(",", expr); ")"; { Call { callee; args } }
 
 (* -------------------------------------------------------------------------- *)
 

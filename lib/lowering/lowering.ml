@@ -57,6 +57,12 @@ let rec map_expr = function
   | Parsetree.Constant (ConstantInt i) -> Ir.Constant (Ir.ConstantInt i)
   | Ident i -> Ident i
   | Binop (e1, op, e2) -> Binop (map_expr e1, map_op op, map_expr e2)
+  | Call { callee = Ident "print"; args = [e] } -> Builtin (Print (map_expr e))
+  | Call { callee = Ident "println"; args = [ e ] } ->
+      Builtin (Println (map_expr e))
+  | Call { callee = Ident "assert"; args = [ e ] } ->
+      Builtin (Assert (map_expr e))
+  | Call _ -> Printf.failwithf "Function calls are not supported" ()
 
 let rec pass_stmt = function
   | LetDecl (ident, expr) | Assign (Ident ident, expr) ->

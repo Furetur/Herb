@@ -55,6 +55,7 @@ rule token = parse
 | '{'  { LBRACE }
 | '}'  { RBRACE }
 | ';'  { SEMI }
+| ","  { COMMA }
 | eof  { EOF }
 
 | _ { raise Error }

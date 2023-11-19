@@ -17,6 +17,12 @@ let rec show_expr = function
   | Ident i -> i
   | Binop (e1, op, e2) ->
       sprintf "%s %s %s" (show_expr e1) (show_binop op) (show_expr e2)
+  | Builtin b -> show_builtin b
+
+and show_builtin = function
+  | Print e -> sprintf "print(%s)" (show_expr e)
+  | Println e -> sprintf "println(%s)" (show_expr e)
+  | Assert e -> sprintf "assert(%s)" (show_expr e)
 
 let show_stmt = function
   | Assign (LvalueIdent i, e) -> sprintf "%s = %s" i (show_expr e)
