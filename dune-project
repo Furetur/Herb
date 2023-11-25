@@ -36,9 +36,17 @@
   fmt
   logs
   ppx_deriving
-  location
-  ollvm)
+  location)
  (tags
   (topics "to describe" your project)))
+
+(package
+ (name ollvm)
+ (depends
+  (ocaml
+   (>= 5.1.0))
+  (dune
+   (>= 3.8.3))
+  menhir))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project

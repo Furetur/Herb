@@ -1,0 +1,4 @@
+[submodule "ollvm"]
+	path = ollvm
+	url = git@github.com:Furetur/ezllvm.git
+	branch = dev

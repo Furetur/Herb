@@ -13,7 +13,7 @@ type labels_map = (Label.label, V.t, Label.Comparator.comparator_witness) Map.t
 type state = {
   locals_map : locals_map;
   labels_map : labels_map;
-  instructions : Ollvm_ast.instr list;
+  instructions : Ollvm.Ast.instr list;
   ll_module : M.t;
   next_reg_id : int;
 }
