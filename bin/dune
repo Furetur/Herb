@@ -3,18 +3,5 @@
  (name herbc)
  (package herb)
  (modules herbc)
- (libraries cmdliner herb))
-
-; (executable
-;  (public_name herb_exec)
-;  (name herb_exec)
-;  (package herb)
-;  (modules herb_exec)
-;  (libraries cmdliner herb))
-
-; (executable
-;  (public_name herb_parse)
-;  (name herb_parse)
-;  (package herb)
-;  (modules herb_parse)
-;  (libraries cmdliner herb))
+ (libraries cmdliner herb)
+ (modes byte exe))

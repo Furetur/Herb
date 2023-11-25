@@ -10,11 +10,11 @@ homepage: "https://github.com/username/reponame"
 doc: "https://url/to/documentation"
 bug-reports: "https://github.com/username/reponame/issues"
 depends: [
-  "ocaml"
-  "dune" {>= "3.4"}
+  "ocaml" {>= "5.1.0"}
+  "dune" {>= "3.4" & >= "3.8.3"}
   "base-unix"
-  "base"
-  "stdio"
+  "base" {>= "0.16.0"}
+  "stdio" {>= "0.16.0"}
   "menhir"
   "cmdliner"
   "fmt"
