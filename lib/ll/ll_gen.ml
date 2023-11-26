@@ -60,7 +60,7 @@ let rec pass_expr = function
   | Constant (ConstantInt i) -> return (V.i32 i)
   | Ident ident -> 
     let* ptr = get_ll_ptr ident in
-    as_temp_reg (I.load ptr ~align:(Some 8))
+    as_temp_reg (I.load ptr)
   | Binop (l, op, r) ->
       let* l = pass_expr l in
       let* r = pass_expr r in
