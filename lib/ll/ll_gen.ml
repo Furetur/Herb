@@ -58,7 +58,7 @@ let as_temp_reg instr =
 
 let rec pass_expr = function
   | Constant (ConstantInt i) -> return (V.i32 i)
-  | Ident ident -> 
+  | Ident ident ->
     let* ptr = get_ll_ptr ident in
     as_temp_reg (I.load ptr)
   | Binop (l, op, r) ->
@@ -164,5 +164,5 @@ let gen_entry m { locals; entry_block; blocks } =
   m
 
 let gen_module ({ entry } : ir) : M.t =
-  let m = M.init "name" ("arm64", "apple", "macosx13.0.0") "" in
+  let m = M.init "name" ("", "", "") "" in
   gen_entry m entry
