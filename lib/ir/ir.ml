@@ -22,10 +22,7 @@ and expr =
   | Binop of expr * binop * expr
   | Builtin of builtin
 
-and builtin =
-  | Print of expr
-  | Println of expr
-  | Assert of expr
+and builtin = Print of expr | Println of expr | Assert of expr
 
 (* ----- Statements ----- *)
 and lvalue = LvalueIdent of ident

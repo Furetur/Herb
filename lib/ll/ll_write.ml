@@ -9,7 +9,7 @@ let write m formatter =
 
 let write_to_stdout m = write m Stdlib.Format.std_formatter
 
-let write_to_file m filepath: (unit, string) Result.t =
+let write_to_file m filepath : (unit, string) Result.t =
   try
     Out_channel.with_file (Fpath.to_string filepath) ~f:(fun chan ->
         let fmt = Stdlib.Format.formatter_of_out_channel chan in

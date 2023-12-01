@@ -11,6 +11,7 @@ type locals_map = (ident, V.t, String.comparator_witness) Map.t
 type labels_map = (Label.label, V.t, Label.Comparator.comparator_witness) Map.t
 
 type state = {
+  builtins : Ll_builtins.builtins;
   locals_map : locals_map;
   labels_map : labels_map;
   instructions : Ollvm.Ast.instr list;
@@ -59,8 +60,8 @@ let as_temp_reg instr =
 let rec pass_expr = function
   | Constant (ConstantInt i) -> return (V.i32 i)
   | Ident ident ->
-    let* ptr = get_ll_ptr ident in
-    as_temp_reg (I.load ptr)
+      let* ptr = get_ll_ptr ident in
+      as_temp_reg (I.load ptr)
   | Binop (l, op, r) ->
       let* l = pass_expr l in
       let* r = pass_expr r in
@@ -73,7 +74,19 @@ let rec pass_expr = function
         | BinopIntMod -> I.srem l r
       in
       as_temp_reg instr
-  | Builtin _ -> failwith "builtins not supported"
+  | Builtin b -> pass_builtin b
+
+and pass_builtin b =
+  let pass_simple_builtin ll_func expr_arg =
+    let* v = pass_expr expr_arg in
+    as_temp_reg (I.call ll_func [ v ])
+  in
+  let* s = get in
+  let builtins = s.builtins in
+  match b with
+  | Print x -> pass_simple_builtin builtins.print x
+  | Println x -> pass_simple_builtin builtins.println x
+  | Assert x -> pass_simple_builtin builtins.assert' x
 
 let pass_stmt = function
   | Assign (LvalueIdent ident, expr) ->
@@ -82,7 +95,6 @@ let pass_stmt = function
       let _, instr = I.store v ptr in
       add_instr instr
   | ExprStmt e -> pass_expr e *> return ()
-
 
 let pass_terminator = function
   | Jump label ->
@@ -97,21 +109,28 @@ let pass_terminator = function
       let* v = pass_expr expr in
       add_instr (I.br v ll_true ll_false) *> return ()
 
-
-let gen_block m next_reg_id locals_map labels_map { label; body; terminator } =
+let gen_block m next_reg_id builtins locals_map labels_map
+    { label; body; terminator } =
   let ll_label = Map.find_exn labels_map label in
   let pass_block body terminator =
-    many body ~f:pass_stmt *> pass_terminator terminator *>
-    let* s = get in
-    return (B.block ll_label (List.rev s.instructions))
+    many body ~f:pass_stmt *> pass_terminator terminator
+    *> let* s = get in
+       return (B.block ll_label (List.rev s.instructions))
   in
   let block =
     run_pass
       (pass_block body terminator)
-      ~init:{ locals_map; labels_map; instructions = []; ll_module = m; next_reg_id }
+      ~init:
+        {
+          builtins;
+          locals_map;
+          labels_map;
+          instructions = [];
+          ll_module = m;
+          next_reg_id;
+        }
   in
   (m, next_reg_id, block)
-
 
 let gen_callframe_init_block m locals_map labels_map next_label =
   let m, ll_this_label = M.local m T.label "call_frame_init" in
@@ -119,10 +138,10 @@ let gen_callframe_init_block m locals_map labels_map next_label =
   let alloca_instructions =
     Map.data locals_map |> List.map ~f:(fun reg -> reg <-- I.alloca int_t)
   in
-  let instructions = alloca_instructions @ [I.br1 ll_next_label] in
+  let instructions = alloca_instructions @ [ I.br1 ll_next_label ] in
   (m, B.block ll_this_label instructions)
 
-let gen_entry m { locals; entry_block; blocks } =
+let gen_entry m builtins { locals; entry_block; blocks } =
   let build_locals_map m locals : M.t * locals_map =
     let create_reg (m, locals_map) ident =
       let m, reg = M.local m int_ptr_t ident in
@@ -148,13 +167,19 @@ let gen_entry m { locals; entry_block; blocks } =
   let all_labels = List.map (entry_block :: blocks) ~f:(fun b -> b.label) in
   let m, labels_map = build_labels_map m all_labels in
   (* Generate *)
-  let m, callframe_init_block = gen_callframe_init_block m locals_map labels_map entry_block.label in
+  let m, callframe_init_block =
+    gen_callframe_init_block m locals_map labels_map entry_block.label
+  in
   let folder (m, next_reg_id, blocks) block =
-    let (m, next_reg_id, block) = gen_block m next_reg_id locals_map labels_map block in
-    (m, next_reg_id, block::blocks)
+    let m, next_reg_id, block =
+      gen_block m next_reg_id builtins locals_map labels_map block
+    in
+    (m, next_reg_id, block :: blocks)
   in
 
-  let m, _, ll_blocks = List.fold (entry_block::blocks) ~init:(m, 0, []) ~f:folder in
+  let m, _, ll_blocks =
+    List.fold (entry_block :: blocks) ~init:(m, 0, []) ~f:folder
+  in
   let ll_blocks = List.rev ll_blocks in
   let m, main_func = M.global m int_t "main" in
   let main_func_impl =
@@ -165,4 +190,5 @@ let gen_entry m { locals; entry_block; blocks } =
 
 let gen_module ({ entry } : ir) : M.t =
   let m = M.init "name" ("", "", "") "" in
-  gen_entry m entry
+  let m, builtins = Ll_builtins.add_builtin_declarations m in
+  gen_entry m builtins entry
