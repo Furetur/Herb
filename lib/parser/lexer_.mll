@@ -48,6 +48,12 @@ rule token = parse
 | '/'  { DIV }
 | '%'  { MOD }
 
+| '<' { LT }
+| "<=" { LTE }
+| "==" { EQ }
+| "!=" { NEQ }
+| ">" { GT }
+| ">=" { GTE }
 
 (* Punctuation *)
 | '('  { LPAREN }

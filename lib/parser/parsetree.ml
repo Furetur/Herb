@@ -2,7 +2,18 @@ open Base
 
 (* ----- Operators ----- *)
 
-type binop = BinopPlus | BinopMinus | BinopMul | BinopDiv | BinopMod
+type binop =
+  | BinopPlus
+  | BinopMinus
+  | BinopMul
+  | BinopDiv
+  | BinopMod
+  | BinopLt
+  | BinopLte
+  | BinopEq
+  | BinopNeq
+  | BinopGt
+  | BinopGte
 [@@deriving show]
 
 (* ----- Expressions ----- *)

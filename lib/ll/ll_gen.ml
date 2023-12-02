@@ -47,13 +47,17 @@ let add_instr instr =
 
 let make_temp_reg =
   let* s = get in
-  let name = Printf.sprintf "temp_%d" s.next_reg_id in
-  let m, r = M.local s.ll_module int_t name in
-  set { s with next_reg_id = s.next_reg_id + 1; ll_module = m } *> return r
+  let m, r = M.local s.ll_module int_t "" in
+  set { s with ll_module = m } *> return r
 
 let as_temp_reg instr =
   let* reg = make_temp_reg in
   add_instr (reg <-- instr) *> return reg
+
+let as_bool_temp_reg instr =
+  let* s = get in
+  let m, r = M.local s.ll_module T.i1 "" in
+  set { s with ll_module = m } *> add_instr (r <-- instr) *> return r
 
 (* ----- Pass ----- *)
 
@@ -62,18 +66,21 @@ let rec pass_expr = function
   | Ident ident ->
       let* ptr = get_ll_ptr ident in
       as_temp_reg (I.load ptr)
-  | Binop (l, op, r) ->
+  | Binop (l, op, r) -> (
       let* l = pass_expr l in
       let* r = pass_expr r in
-      let instr =
-        match op with
-        | BinopIntPlus -> I.add l r
-        | BinopIntMinus -> I.sub l r
-        | BinopIntMul -> I.mul l r
-        | BinopIntDiv -> I.sdiv l r
-        | BinopIntMod -> I.srem l r
-      in
-      as_temp_reg instr
+      match op with
+      | BinopIntPlus -> as_temp_reg (I.add l r)
+      | BinopIntMinus -> as_temp_reg (I.sub l r)
+      | BinopIntMul -> as_temp_reg (I.mul l r)
+      | BinopIntDiv -> as_temp_reg (I.sdiv l r)
+      | BinopIntMod -> as_temp_reg (I.srem l r)
+      | BinopIntEq -> as_bool_temp_reg (I.eq l r)
+      | BinopIntNeq -> as_bool_temp_reg (I.ne l r)
+      | BinopIntLt -> as_bool_temp_reg (I.slt l r)
+      | BinopIntLte -> as_bool_temp_reg (I.sle l r)
+      | BinopIntGt -> as_bool_temp_reg (I.sgt l r)
+      | BinopIntGte -> as_bool_temp_reg (I.sge l r))
   | Builtin b -> pass_builtin b
 
 and pass_builtin b =
@@ -115,9 +122,9 @@ let gen_block m next_reg_id builtins locals_map labels_map
   let pass_block body terminator =
     many body ~f:pass_stmt *> pass_terminator terminator
     *> let* s = get in
-       return (B.block ll_label (List.rev s.instructions))
+       return (s.ll_module, B.block ll_label (List.rev s.instructions))
   in
-  let block =
+  let m, block =
     run_pass
       (pass_block body terminator)
       ~init:

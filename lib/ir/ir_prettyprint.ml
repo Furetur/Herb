@@ -11,6 +11,12 @@ let show_binop = function
   | BinopIntMul -> "*"
   | BinopIntDiv -> "/"
   | BinopIntMod -> "%"
+  | BinopIntEq -> "=="
+  | BinopIntNeq -> "!="
+  | BinopIntLt -> "<"
+  | BinopIntLte -> "<="
+  | BinopIntGt -> ">"
+  | BinopIntGte -> ">="
 
 let rec show_expr = function
   | Constant c -> show_constant c

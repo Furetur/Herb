@@ -52,6 +52,12 @@ let map_op = function
   | BinopMul -> BinopIntMul
   | BinopDiv -> BinopIntDiv
   | BinopMod -> BinopIntMod
+  | BinopEq -> BinopIntEq
+  | BinopNeq -> BinopIntNeq
+  | BinopLt -> BinopIntLt
+  | BinopGt -> BinopIntGt
+  | BinopLte -> BinopIntLte
+  | BinopGte -> BinopIntGte
 
 let rec map_expr = function
   | Parsetree.Constant (ConstantInt i) -> Ir.Constant (Ir.ConstantInt i)

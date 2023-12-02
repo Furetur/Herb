@@ -11,6 +11,12 @@ type binop =
   | BinopIntMul
   | BinopIntDiv
   | BinopIntMod
+  | BinopIntEq
+  | BinopIntNeq
+  | BinopIntGt
+  | BinopIntGte
+  | BinopIntLt
+  | BinopIntLte
 
 (* ----- Expressions ----- *)
 
