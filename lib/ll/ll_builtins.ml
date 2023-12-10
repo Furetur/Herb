@@ -4,7 +4,7 @@ module B = Ollvm.Ez.Block
 module T = Ollvm.Ez.Type
 module I = Ollvm.Ez.Instr
 
-type builtins = { print : V.t; println : V.t; assert' : V.t }
+type builtins_symtab = { print : V.t; println : V.t; assert' : V.t }
 
 let add_func_decl m name arg_types ret_type =
   let m, name = M.global m ret_type name in

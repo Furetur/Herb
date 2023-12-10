@@ -1,201 +1,23 @@
 open Base
-module V = Ollvm.Ez.Value
-module I = Ollvm.Ez.Instr
-module B = Ollvm.Ez.Block
-module M = Ollvm.Ez.Module
-module T = Ollvm.Ez.Type
-module P = Ollvm.Printer
-open Ir
+open Stdio
 
-type locals_map = (ident, V.t, String.comparator_witness) Map.t
-type labels_map = (Label.label, V.t, Label.Comparator.comparator_witness) Map.t
+let ( let* ) = Result.( >>= )
 
-type state = {
-  builtins : Ll_builtins.builtins;
-  locals_map : locals_map;
-  labels_map : labels_map;
-  instructions : Ollvm.Ast.instr list;
-  ll_module : M.t;
-  next_reg_id : int;
-}
+(* TODO: this only works when CWD = project root *)
+let builtins_c_file_path = Fpath.(v "runtime" / "builtins.c")
 
-module ThisPass = Passes.NoErrors (struct
-  type t = state
-end)
-
-open ThisPass
-
-(* ----- Helpers ----- *)
-
-let ( <-- ) = I.( <-- )
-let int_t = T.i32
-let int_ptr_t = T.pointer T.i32
-
-(* ----- State ----- *)
-
-let get_ll_ptr ident =
-  let* s = get in
-  return (Map.find_exn s.locals_map ident)
-
-let get_ll_label label =
-  let* s = get in
-  return (Map.find_exn s.labels_map label)
-
-let add_instr instr =
-  let* s = get in
-  set { s with instructions = instr :: s.instructions }
-
-let make_temp_reg =
-  let* s = get in
-  let m, r = M.local s.ll_module int_t "" in
-  set { s with ll_module = m } *> return r
-
-let as_temp_reg instr =
-  let* reg = make_temp_reg in
-  add_instr (reg <-- instr) *> return reg
-
-let as_bool_temp_reg instr =
-  let* s = get in
-  let m, r = M.local s.ll_module T.i1 "" in
-  set { s with ll_module = m } *> add_instr (r <-- instr) *> return r
-
-(* ----- Pass ----- *)
-
-let rec pass_expr = function
-  | Constant (ConstantInt i) -> return (V.i32 i)
-  | Ident ident ->
-      let* ptr = get_ll_ptr ident in
-      as_temp_reg (I.load ptr)
-  | Binop (l, op, r) -> (
-      let* l = pass_expr l in
-      let* r = pass_expr r in
-      match op with
-      | BinopIntPlus -> as_temp_reg (I.add l r)
-      | BinopIntMinus -> as_temp_reg (I.sub l r)
-      | BinopIntMul -> as_temp_reg (I.mul l r)
-      | BinopIntDiv -> as_temp_reg (I.sdiv l r)
-      | BinopIntMod -> as_temp_reg (I.srem l r)
-      | BinopIntEq -> as_bool_temp_reg (I.eq l r)
-      | BinopIntNeq -> as_bool_temp_reg (I.ne l r)
-      | BinopIntLt -> as_bool_temp_reg (I.slt l r)
-      | BinopIntLte -> as_bool_temp_reg (I.sle l r)
-      | BinopIntGt -> as_bool_temp_reg (I.sgt l r)
-      | BinopIntGte -> as_bool_temp_reg (I.sge l r))
-  | Builtin b -> pass_builtin b
-
-and pass_builtin b =
-  let pass_simple_builtin ll_func expr_arg =
-    let* v = pass_expr expr_arg in
-    as_temp_reg (I.call ll_func [ v ])
+let run_clang llpath outpath =
+  (* TODO: remove this warning *)
+  let cmd =
+    "clang -Wno-override-module "
+    ^ Fpath.to_string builtins_c_file_path
+    ^ " " ^ Fpath.to_string llpath ^ " -o " ^ Fpath.to_string outpath
   in
-  let* s = get in
-  let builtins = s.builtins in
-  match b with
-  | Print x -> pass_simple_builtin builtins.print x
-  | Println x -> pass_simple_builtin builtins.println x
-  | Assert x -> pass_simple_builtin builtins.assert' x
+  let exitcode = Stdlib.Sys.command cmd in
+  if not (exitcode = 0) then print_endline "Clang returned a non-zero exit code"
 
-let pass_stmt = function
-  | Assign (LvalueIdent ident, expr) ->
-      let* ptr = get_ll_ptr ident in
-      let* v = pass_expr expr in
-      let _, instr = I.store v ptr in
-      add_instr instr
-  | ExprStmt e -> pass_expr e *> return ()
-
-let pass_terminator = function
-  | Jump label ->
-      let* ll_label = get_ll_label label in
-      add_instr (I.br1 ll_label) *> return ()
-  | Return expr ->
-      let* v = pass_expr expr in
-      add_instr (I.ret v) *> return ()
-  | CondBranch { cond = expr; if_true; if_false } ->
-      let* ll_true = get_ll_label if_true in
-      let* ll_false = get_ll_label if_false in
-      let* v = pass_expr expr in
-      add_instr (I.br v ll_true ll_false) *> return ()
-
-let gen_block m next_reg_id builtins locals_map labels_map
-    { label; body; terminator } =
-  let ll_label = Map.find_exn labels_map label in
-  let pass_block body terminator =
-    many body ~f:pass_stmt *> pass_terminator terminator
-    *> let* s = get in
-       return (s.ll_module, B.block ll_label (List.rev s.instructions))
-  in
-  let m, block =
-    run_pass
-      (pass_block body terminator)
-      ~init:
-        {
-          builtins;
-          locals_map;
-          labels_map;
-          instructions = [];
-          ll_module = m;
-          next_reg_id;
-        }
-  in
-  (m, next_reg_id, block)
-
-let gen_callframe_init_block m locals_map labels_map next_label =
-  let m, ll_this_label = M.local m T.label "call_frame_init" in
-  let ll_next_label = Map.find_exn labels_map next_label in
-  let alloca_instructions =
-    Map.data locals_map |> List.map ~f:(fun reg -> reg <-- I.alloca int_t)
-  in
-  let instructions = alloca_instructions @ [ I.br1 ll_next_label ] in
-  (m, B.block ll_this_label instructions)
-
-let gen_entry m builtins { locals; entry_block; blocks } =
-  let build_locals_map m locals : M.t * locals_map =
-    let create_reg (m, locals_map) ident =
-      let m, reg = M.local m int_ptr_t ident in
-      let locals_map = Map.set locals_map ~key:ident ~data:reg in
-      (m, locals_map)
-    in
-    let m, locals_map =
-      List.fold_left locals ~init:(m, Map.empty (module String)) ~f:create_reg
-    in
-    (m, locals_map)
-  in
-  let build_labels_map m labels : M.t * labels_map =
-    let create_ll_label (m, labels_map) label =
-      let m, ll_label = M.local m T.label (Label.show_label label) in
-      let labels_map = Map.set labels_map ~key:label ~data:ll_label in
-      (m, labels_map)
-    in
-    List.fold labels
-      ~init:(m, Map.empty (module Label.Comparator))
-      ~f:create_ll_label
-  in
-  let m, locals_map = build_locals_map m locals in
-  let all_labels = List.map (entry_block :: blocks) ~f:(fun b -> b.label) in
-  let m, labels_map = build_labels_map m all_labels in
-  (* Generate *)
-  let m, callframe_init_block =
-    gen_callframe_init_block m locals_map labels_map entry_block.label
-  in
-  let folder (m, next_reg_id, blocks) block =
-    let m, next_reg_id, block =
-      gen_block m next_reg_id builtins locals_map labels_map block
-    in
-    (m, next_reg_id, block :: blocks)
-  in
-
-  let m, _, ll_blocks =
-    List.fold (entry_block :: blocks) ~init:(m, 0, []) ~f:folder
-  in
-  let ll_blocks = List.rev ll_blocks in
-  let m, main_func = M.global m int_t "main" in
-  let main_func_impl =
-    B.define main_func [] (callframe_init_block :: ll_blocks)
-  in
-  let m = M.definition m main_func_impl in
-  m
-
-let gen_module ({ entry } : ir) : M.t =
-  let m = M.init "name" ("", "", "") "" in
-  let m, builtins = Ll_builtins.add_builtin_declarations m in
-  gen_entry m builtins entry
+let gen ir ll_outpath exe_outpath =
+  let m = Ll_module.gen_module ir in
+  let* _ = Ll_write.write_to_file m ll_outpath in
+  run_clang ll_outpath exe_outpath;
+  Ok ()

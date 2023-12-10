@@ -1,21 +1,6 @@
 open Base
 open Stdio
 
-(* TODO: this only works when CWD = project root *)
-let builtins_c_file_path = Fpath.(v "runtime" / "builtins.c")
-
-let run_clang llpath outpath =
-  (* TODO: remove this warning *)
-  let cmd =
-    "clang -Wno-override-module "
-    ^ Fpath.to_string builtins_c_file_path
-    ^ " " ^ Fpath.to_string llpath ^ " -o " ^ Fpath.to_string outpath
-  in
-  let exitcode = Stdlib.Sys.command cmd in
-  if not (exitcode = 0) then print_endline "Clang returned a non-zero exit code"
-
-(* - API - *)
-
 type compiler_options = {
   path : string;
   outpath : string option;
@@ -41,12 +26,9 @@ let compile { path; outpath; only_parsetree; only_ir } =
       print_endline (Ir_prettyprint.show_ir ir);
       Ok ())
     else
-      let ll = Ll_gen.gen_module ir in
-      let x = Ll_write.write_to_file ll ll_path in
+      let x = Ll_gen.gen ir ll_path outpath in
       match x with
       | Error e ->
           print_endline e;
           Error ()
-      | Ok _ ->
-          run_clang ll_path outpath;
-          Ok ()
+      | Ok () -> Ok ()
