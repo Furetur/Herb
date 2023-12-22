@@ -3,14 +3,17 @@ open Stdio
 
 let ( let* ) = Result.( >>= )
 
-(* TODO: this only works when CWD = project root *)
-let builtins_c_file_path = Fpath.(v "runtime" / "builtins.c")
+let herbc_path =
+  let first_arg = Array.get (Sys.get_argv ()) 0 in
+  Fpath.v first_arg
+
+let runtime_obj_path = Fpath.(parent herbc_path / "runtime.o")
 
 let run_clang llpath outpath =
   (* TODO: remove this warning *)
   let cmd =
     "clang -Wno-override-module "
-    ^ Fpath.to_string builtins_c_file_path
+    ^ Fpath.to_string runtime_obj_path
     ^ " " ^ Fpath.to_string llpath ^ " -o " ^ Fpath.to_string outpath
   in
   let exitcode = Stdlib.Sys.command cmd in

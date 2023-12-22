@@ -5,3 +5,20 @@
  (modules herbc)
  (libraries cmdliner herb)
  (modes byte exe))
+
+; The default target builds the herbc compiler.
+; In the end, the _build/default contains the files `herbc.exe` and `runtime.o`.
+; These should be the only files required to run the compiler.
+
+(alias
+ (name default)
+ (deps herbc.exe runtime.o))
+
+; `runtime.o` is built by clang
+
+(rule
+ (target runtime.o)
+ (deps
+  (:runtime %{project_root}/runtime/builtins.c))
+ (action
+  (run clang %{runtime} -c -o runtime.o)))
