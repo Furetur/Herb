@@ -1,5 +1,0 @@
-let f = (x: int, y: string) -> x
-
-entry {
-    f(1, 2)
-}

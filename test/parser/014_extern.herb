@@ -1,3 +1,0 @@
-extern i: int = "counter"
-
-entry {}

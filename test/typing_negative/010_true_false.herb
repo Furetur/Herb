@@ -1,7 +1,0 @@
-entry {
-    let true = (1 == 1)
-    let false = (1 != 1)
-    
-    true := 1
-    false := 1
-}

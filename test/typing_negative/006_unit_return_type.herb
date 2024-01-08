@@ -1,6 +1,0 @@
-let f = (x: int) -> {}
-
-entry {
-    let x = f(1)
-    x := 2
-}

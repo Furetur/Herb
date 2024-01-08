@@ -1,4 +1,0 @@
-entry {
-    let f = { (x: int) -> x }
-    f := (x: string) -> x
-}

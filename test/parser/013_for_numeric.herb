@@ -1,7 +1,0 @@
-let x = for i = 1..10 { print(i) }
-
-entry {
-    for j  = 1 .. 100 {
-        call(j)
-    }
-}

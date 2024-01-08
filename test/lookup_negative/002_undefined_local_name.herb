@@ -1,7 +1,0 @@
-let f = (x: int, y: int) -> {
-    x + y + z
-}
-
-entry {
-    f(1)
-}
