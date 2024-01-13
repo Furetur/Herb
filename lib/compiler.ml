@@ -8,15 +8,18 @@ type compiler_options = {
   only_ir : bool;
 }
 
-let compile { path; outpath; only_parsetree; only_ir } =
-  let path = Fpath.v path in
-  let ll_path =
-    outpath |> Option.map ~f:Fpath.v
-    |> Option.value ~default:(Fpath.set_ext ".ll" path)
-  in
-  let outpath = Fpath.set_ext "" ll_path in
+let get_paths { path; outpath; _ } =
+  let given_inpath = Fpath.v path in
+  let given_outpath = Option.map outpath ~f:Fpath.v in
+  let default_outpath = Fpath.set_ext "" given_inpath in
+  let bin_outpath = Option.value ~default:default_outpath given_outpath in
+  let ll_outpath = Fpath.set_ext ".ll" bin_outpath in
+  (given_inpath, ll_outpath, bin_outpath)
+
+let compile ({ only_parsetree; only_ir; _ } as options) =
+  let inpath, ll_outpath, bin_outpath = get_paths options in
   (* Compile *)
-  let parsetree = Parser.parse path in
+  let parsetree = Parser.parse inpath in
   if only_parsetree then (
     print_endline (Parsetree.show_parsetree parsetree);
     Ok ())
@@ -26,7 +29,7 @@ let compile { path; outpath; only_parsetree; only_ir } =
       print_endline (Ir_prettyprint.show_ir ir);
       Ok ())
     else
-      let x = Ll_gen.gen ir ll_path outpath in
+      let x = Ll_gen.gen ir ll_outpath bin_outpath in
       match x with
       | Error e ->
           print_endline e;
