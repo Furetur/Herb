@@ -30,11 +30,17 @@ let _follow_symlink path =
       Fpath.(normalize (parent path // actual_rel_path))
   | _ -> path
 
+
+let _executable_path () =
+  let spath = Stdlib.Sys.executable_name in
+  Logs.debug (fun m -> m "Raw compiler executable (may be a symlink): %s" spath);
+  Fpath.v spath
+
 let _get_compiler_executable_path () =
-  let path = _get_argv_0 () in
+  let path = _executable_path () in
   let resolved_path = _follow_symlink path in
   Logs.info (fun m ->
-      m "Located compiler executable: %s, resolved to %s" (Fpath.to_string path)
+      m "Located compiler executable: %s (may be a symlink), resolved to %s" (Fpath.to_string path)
         (Fpath.to_string resolved_path));
   _assert_file_exists resolved_path "Herbc compiler executable";
   resolved_path
