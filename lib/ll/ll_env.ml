@@ -17,17 +17,17 @@ let _get_argv_0 () =
   let x = Array.get (Sys.get_argv ()) 0 in
   Fpath.v x
 
-let _follow_symlink path =
+let rec _follow_symlink path =
   let str_path = Fpath.to_string path in
   let stats = lstat str_path in
   match stats.st_kind with
   | S_LNK ->
-      let actual_s_rel_path = readlink str_path in
-      Logs.debug (fun m ->
-          m "Unix.readlink %s -> %s" str_path actual_s_rel_path);
-      let actual_rel_path = Fpath.v actual_s_rel_path in
+      let raw_rel_path = readlink str_path in
       (* `actual_rel_path` is relative to the symlink at `path` *)
-      Fpath.(normalize (parent path // actual_rel_path))
+      let linked_path = Fpath.(normalize (parent path // v raw_rel_path)) in
+      Logs.debug (fun m ->
+          m "Unix follow symlink %s -> %s" str_path (Fpath.to_string linked_path));
+      _follow_symlink linked_path
   | _ -> path
 
 
