@@ -2,6 +2,8 @@
 
 > A programming language that I am developing as a pet-project
 
+Program examples can be found at [test/exec](test/exec).
+
 ## Build from sources
 
 These instructions describe how to create an empty OCaml environment and build the Herb Compiler. If you are a pro you can skip certain steps
@@ -25,3 +27,16 @@ dune b
 ```
 
 4. The binary can be found at `./_build/default/bin/herbc.exe`
+
+## Run Tests
+
+Additional prerequisites:
+
+* Python 3
+* `pytest` (must be available via the `pytest` command)
+
+To run the tests you must execute a single shell script:
+
+```
+./scripts/test.sh
+```

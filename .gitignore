@@ -4,3 +4,5 @@ experiments
 **/*.ll
 **/*.exe
 **/.DS_Store
+**/.pytest_cache
+**/__pycache__
