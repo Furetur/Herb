@@ -19,8 +19,8 @@ depends: [
   "cmdliner"
   "fmt"
   "logs"
+  "fpath"
   "ppx_deriving"
-  "location"
   "odoc" {with-doc}
 ]
 build: [

@@ -7,15 +7,15 @@
 (generate_opam_files true)
 
 (source
- (github username/reponame))
+ (github Furetur/Herb))
 
-(authors "Author Name")
+(authors "Furetur")
 
-(maintainers "Maintainer Name")
+(maintainers "Furetur")
 
 (license LICENSE)
 
-(documentation https://url/to/documentation)
+(documentation https://github.com/Furetur/Herb)
 
 (package
  (name herb)
@@ -35,8 +35,8 @@
   cmdliner
   fmt
   logs
-  ppx_deriving
-  location)
+  fpath
+  ppx_deriving)
  (tags
   (topics "to describe" your project)))
 
@@ -48,5 +48,3 @@
   (dune
    (>= 3.8.3))
   menhir))
-
-; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project
