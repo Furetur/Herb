@@ -1,0 +1,7 @@
+entry {
+    if 1 == 0 {
+        assert(1 == 2);
+    } else {
+
+    }
+}

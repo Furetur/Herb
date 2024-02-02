@@ -1,0 +1,7 @@
+entry {
+    let i = 0;
+    while (i < 1000) {
+        assert(i % 2 == 0);
+        i = i + 2;
+    }
+}

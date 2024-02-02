@@ -1,0 +1,15 @@
+entry {
+    let a = 1;
+    let b = 1;
+
+    let i = 0;
+    while (i < 10) {
+        let t = b;
+        b = a + b;
+        a = t;
+
+        i = i + 1;
+    }
+
+    assert(a == 89);
+}
