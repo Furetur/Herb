@@ -42,6 +42,10 @@ def discover_tests() -> Sequence[Tuple[Path]]:
     return collected_tests
 
 
+def get_test_id(herb_file: Path) -> str:
+    return str(herb_file.relative_to(get_test_suite_root()))
+
+
 def run_binary(args: Sequence[str]) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
@@ -51,7 +55,9 @@ def run_binary(args: Sequence[str]) -> subprocess.CompletedProcess[str]:
 def compile(input: Path, output: Path) -> None:
     result = run_binary([str(get_compiler_binary()), str(input), "-o", str(output)])
     if result.returncode != 0:
-        pytest.fail(f"[Compilation Error]\n\n----- CAPTURED OUTPUT -----\n{result.stdout}")
+        pytest.fail(
+            f"[Compilation Error] {get_test_id(input)}\n\n----- CAPTURED OUTPUT -----\n{result.stdout}"
+        )
 
 
 def run_test(test_file: Path, tmpdir: Path) -> None:
@@ -59,9 +65,11 @@ def run_test(test_file: Path, tmpdir: Path) -> None:
     compile(test_file, compiled_executable_path)
     result = run_binary([str(compiled_executable_path)])
     if result.returncode != 0:
-        pytest.fail(f"[Execution Error]\n\n----- CAPTURED OUTPUT -----\n{result.stdout}")
+        pytest.fail(
+            f"[Execution Error] {get_test_id(test_file)}\n\n----- CAPTURED OUTPUT -----\n{result.stdout}"
+        )
 
 
-@pytest.mark.parametrize("herb_file", discover_tests())
+@pytest.mark.parametrize("herb_file", discover_tests(), ids=get_test_id)
 def test_exec(herb_file: Path, tmpdir: Path) -> None:
     run_test(herb_file, tmpdir)
