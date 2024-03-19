@@ -1,0 +1,11 @@
+entry {
+    let result = 0;
+
+    if (5 % 2 == 1) {
+        result = 1;
+    } else {
+        assert(0 == 1);
+    }
+    
+    assert(result == 1);
+}

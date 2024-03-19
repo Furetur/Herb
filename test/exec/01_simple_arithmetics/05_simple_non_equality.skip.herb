@@ -1,0 +1,4 @@
+entry {
+    assert(0 != 1);
+    assert(10 != 11);
+}

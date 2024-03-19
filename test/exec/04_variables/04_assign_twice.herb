@@ -1,0 +1,10 @@
+entry {
+    let x = 10;
+    assert(x == 10);
+
+    x = 20;
+    assert(x == 20);
+
+    x = 30;
+    assert(x == 30);
+}

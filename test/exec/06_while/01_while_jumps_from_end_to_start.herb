@@ -1,0 +1,12 @@
+entry {
+    let i = 0;
+    let prev = 0;
+
+    while (i < 100) {
+        i = i + 1;
+
+        assert(prev + 1 == i);
+
+        prev = i;
+    }
+}

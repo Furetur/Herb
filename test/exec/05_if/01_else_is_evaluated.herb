@@ -1,0 +1,11 @@
+entry {
+    let result = 0;
+
+    if 5 + 2 < 5 {
+        assert(0 == 1);
+    } else {
+        result = 1;
+    }
+
+    assert(result == 1);
+}

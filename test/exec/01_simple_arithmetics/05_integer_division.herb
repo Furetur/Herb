@@ -1,0 +1,5 @@
+entry {
+    assert(5 / 2 == 2);
+    assert(101 / 2 == 50);
+    assert(10 / 3 == 3);
+}
