@@ -1,0 +1,6 @@
+entry {
+    assert(10 == 8 + 2);
+    assert(5 == 6 - 1);
+    assert(40 == 10 * 4);
+    assert(-5 == 30 / -6);
+}

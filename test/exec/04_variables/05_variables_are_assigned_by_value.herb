@@ -1,0 +1,10 @@
+entry {
+    let x = 0;
+    let y = 0;
+
+    x = 103;
+    y = x;
+    x = 33;
+
+    assert(y == 103);
+}

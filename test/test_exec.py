@@ -29,8 +29,12 @@ def get_compiler_binary() -> Path:
 
 def discover_tests() -> Sequence[Tuple[Path]]:
     def get_test_files(root: Path) -> Iterable[Path]:
-        paths = [root / p for p in os.listdir(root)]
-        return (p for p in paths if p.is_file() and p.suffix == ".herb")
+        herb_files = (p for p in root.iterdir() if p.is_file() and p.suffix == ".herb")
+        yield from herb_files
+
+        subdirs = (p for p in root.iterdir() if p.is_dir())
+        for subdir in subdirs:
+            yield from get_test_files(subdir)
 
     test_suite_root = get_test_suite_root()
     assert (
@@ -40,6 +44,11 @@ def discover_tests() -> Sequence[Tuple[Path]]:
     collected_tests = list(get_test_files(test_suite_root))
     assert len(collected_tests) != 0, "No tests collected"
     return collected_tests
+
+
+def maybe_skip_test(test_file: Path):
+    if ".skip" in test_file.suffixes:
+        pytest.skip(reason="Test annotated with '.skip'")
 
 
 def get_test_id(herb_file: Path) -> str:
@@ -52,22 +61,32 @@ def run_binary(args: Sequence[str]) -> subprocess.CompletedProcess[str]:
     )
 
 
-def compile(input: Path, output: Path) -> None:
+def compile(test_id: str, input: Path, output: Path) -> None:
     result = run_binary([str(get_compiler_binary()), str(input), "-o", str(output)])
     if result.returncode != 0:
         pytest.fail(
-            f"[Compilation Error] {get_test_id(input)}\n\n----- CAPTURED OUTPUT -----\n{result.stdout}"
+            f"[Compilation Error] {test_id}\n\n----- CAPTURED OUTPUT -----\n{result.stdout}"
+        )
+    if not output.exists():
+        pytest.fail(
+            f"[Compiled binary does not exist] {test_id}\n\n----- CAPTURED OUTPUT -----\n{result.stdout}"
+        )
+
+
+def execute_compiled_binary(test_id: str, exec_path: Path) -> None:
+    result = run_binary([str(exec_path)])
+    if result.returncode != 0:
+        pytest.fail(
+            f"[Execution Error] {test_id}\n\n----- CAPTURED OUTPUT -----\n{result.stdout}"
         )
 
 
 def run_test(test_file: Path, tmpdir: Path) -> None:
+    maybe_skip_test(test_file)
+    test_id = get_test_id(test_file)
     compiled_executable_path = tmpdir / "prog"
-    compile(test_file, compiled_executable_path)
-    result = run_binary([str(compiled_executable_path)])
-    if result.returncode != 0:
-        pytest.fail(
-            f"[Execution Error] {get_test_id(test_file)}\n\n----- CAPTURED OUTPUT -----\n{result.stdout}"
-        )
+    compile(test_id, test_file, compiled_executable_path)
+    execute_compiled_binary(get_test_id(test_file), compiled_executable_path)
 
 
 @pytest.mark.parametrize("herb_file", discover_tests(), ids=get_test_id)

@@ -1,0 +1,25 @@
+entry {
+    let target = 5;
+
+    let result = 0;
+
+    if target % 2 == 0 {
+        target = target / 2;
+
+        if target % 2 == 0 {
+            result = 1;
+        } else {
+            result = 2;
+        }
+    } else {
+        target = target / 2;
+
+        if target % 2 == 0 {
+            result = 3;
+        } else {
+            result = 4;
+        }
+    }
+
+    assert(result == 3);
+}

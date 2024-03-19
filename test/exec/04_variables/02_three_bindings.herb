@@ -1,0 +1,7 @@
+entry {
+    let x = 2;
+    let y = x + x;
+    let z = x * x;
+    
+    assert(y == z);
+}

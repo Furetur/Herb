@@ -1,0 +1,5 @@
+entry {
+    assert(1 + 1 == 2);
+    assert(100 + 1 == 101);
+    assert(1 + -1 == 0);
+}

@@ -1,0 +1,16 @@
+entry {
+    let sum = 0;
+
+    let n = 60;
+
+    let i = 2;
+    while i < n + 1 {
+        while n % i == 0 {
+            sum = sum + i;
+            n = n / i;
+        }
+        i = i + 1;
+    }
+
+    assert(sum == 12);
+}

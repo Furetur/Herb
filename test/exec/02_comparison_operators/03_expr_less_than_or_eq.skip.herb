@@ -1,0 +1,5 @@
+entry {
+    assert(1 + -4 <= -2);
+    assert(-1 <= 0 - 1);
+    assert(8 * 4 <= 13 * 3);
+}
