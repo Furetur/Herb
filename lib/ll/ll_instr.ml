@@ -16,11 +16,11 @@ type state = {
   instrs : Ollvm.Ast.instr list;
 }
 
-module ThisPass = Passes.NoErrors (struct
+module Dsl = Pass_dsl.No_errors (struct
   type t = state
 end)
 
-open ThisPass
+open Dsl
 
 (* ----- Helpers ----- *)
 

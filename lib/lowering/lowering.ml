@@ -10,11 +10,11 @@ type state = {
   cur_block : stmt list;
 }
 
-module ThisPass = Passes.NoErrors (struct
+module Dsl = Pass_dsl.No_errors (struct
   type t = state
 end)
 
-open ThisPass
+open Dsl
 
 let assemble_cur_block cur_label cur_block terminator =
   { label = cur_label; body = List.rev cur_block; terminator }

@@ -1,10 +1,10 @@
 open Base
 
-module type STATE = sig
+module type Pass_state = sig
   type t
 end
 
-module NoErrors (S : STATE) = struct
+module No_errors (S : Pass_state) = struct
   type 'a t = S.t -> S.t * 'a
 
   let run_pass (t : 'a t) ~(init : S.t) : 'a =
