@@ -18,19 +18,17 @@ type binop =
 
 (* ----- Expressions ----- *)
 
-type ident = string [@@deriving show]
-
 type constant = ConstantInt of int [@@deriving show]
 
 and expr =
   | Constant of constant
-  | Ident of ident
+  | Ident of string
   | Binop of expr * binop * expr
   | Call of { callee : expr; args : expr list }
 [@@deriving show]
 
 (* ----- Declarations ----- *)
-and let_decl = ident * expr [@@deriving show]
+and let_decl = string * expr [@@deriving show]
 
 (* ----- Statements ----- *)
 and stmt =

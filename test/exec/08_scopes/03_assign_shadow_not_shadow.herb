@@ -1,0 +1,18 @@
+entry {
+    let steps = 0;
+
+    let x = 0;
+
+    while x < 10 {
+        steps = steps + 1;
+
+        if x % 2 == 0 {
+            x = x + 3;
+        } else {
+            x = x + 1;
+        }
+        let x = 2;
+        x = 100;
+    }
+    assert(steps == 5);
+}

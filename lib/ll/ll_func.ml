@@ -11,12 +11,14 @@ open Ll_symtab
 
 let prepare_locals m { Ir.locals = ir_locals; _ } : M.t * locals_symtab =
   let create_reg (m, locals_map) ident =
-    let m, reg = M.local m int_ptr_t ident in
+    let m, reg = M.local m int_ptr_t (Ident.mangle ident) in
     let locals_map = Map.set locals_map ~key:ident ~data:reg in
     (m, locals_map)
   in
   let m, locals_map =
-    List.fold_left ir_locals ~init:(m, Map.empty (module String)) ~f:create_reg
+    List.fold_left ir_locals
+      ~init:(m, Map.empty (module Ident.Comparator))
+      ~f:create_reg
   in
   (m, locals_map)
 

@@ -7,7 +7,8 @@ type module_symtab = { builtins : Ll_builtins.builtins_symtab }
 
 (* ----- Function Symtab ----- *)
 
-type locals_symtab = (Ir.ident, V.t, String.comparator_witness) Map.t
+type locals_symtab =
+  (Ident.ident, V.t, Ident.Comparator.comparator_witness) Map.t
 
 type labels_symtab =
   (Label.label, V.t, Label.Comparator.comparator_witness) Map.t

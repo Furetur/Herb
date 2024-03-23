@@ -1,0 +1,10 @@
+entry {
+    let i = 0;
+    if i % 2 == 0 {
+        assert(i * 5 == 0);
+        let i = 10;
+        assert(i == 10);
+    } else {
+        
+    }
+}

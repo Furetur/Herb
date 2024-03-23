@@ -1,5 +1,5 @@
 open Base
-open Parsetree
+open Lookuptree
 
 let hoist_all_locals block =
   let rec aux acc stmts =
@@ -8,11 +8,9 @@ let hoist_all_locals block =
     | s :: stmts -> (
         match s with
         | LetDecl (ident, _) -> aux (ident :: acc) stmts
-        | While (_, b) -> aux acc (b @ stmts)
-        | If (_, b1, b2) -> aux acc (b1 @ b2 @ stmts)
+        | While (_, b) -> aux acc (b.stmts @ stmts)
+        | If (_, b1, b2) -> aux acc (b1.stmts @ b2.stmts @ stmts)
         | _ -> aux acc stmts)
   in
-  let result = aux [] block in
-  if List.contains_dup result ~compare:String.compare then
-    Printf.failwithf "There are duplicate identifiers" ();
+  let result = aux [] block.stmts in
   List.rev result

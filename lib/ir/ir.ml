@@ -1,7 +1,6 @@
 open Base
+open Ident
 open Label
-
-type ident = string [@@deriving show]
 
 (* ----- Operators ----- *)
 
