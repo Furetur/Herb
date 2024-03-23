@@ -2,8 +2,13 @@ open Cmdliner
 open Herb.Compiler
 
 let only_parsetree =
-  let doc = "Only Parsetree" in
+  let doc = "Only parsetree" in
   let info = Arg.info [ "only-parsetree"; "parse" ] ~doc in
+  Arg.value (Arg.flag info)
+
+let only_lookuptree =
+  let doc = "Only lookuptree" in
+  let info = Arg.info [ "only-lookuptree"; "lookup" ] ~doc in
   Arg.value (Arg.flag info)
 
 let input_file =
@@ -22,7 +27,7 @@ let setup_log level =
   Logs.set_reporter (Logs_fmt.reporter ());
   ()
 
-let herbc log only_parsetree input_file output_file =
+let herbc log only_parsetree only_lookuptree input_file output_file =
   setup_log log;
   let _ =
     compile
@@ -30,6 +35,7 @@ let herbc log only_parsetree input_file output_file =
         path = input_file;
         outpath = output_file;
         only_parsetree;
+        only_lookuptree;
         only_ir = false;
       }
   in
@@ -37,7 +43,8 @@ let herbc log only_parsetree input_file output_file =
 
 let herbc_t =
   Term.(
-    const herbc $ Logs_cli.level () $ only_parsetree $ input_file $ output_file)
+    const herbc $ Logs_cli.level () $ only_parsetree $ only_lookuptree
+    $ input_file $ output_file)
 
 let cmd =
   let doc = "Herb Compiler" in

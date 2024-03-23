@@ -50,3 +50,51 @@ module No_errors (S : Pass_state) = struct
     in
     aux xs []
 end
+
+module Single_error (S : Pass_state) = struct
+  type 'a pass = S.t -> (S.t * 'a, Errors.error) Result.t
+
+  let run_pass (t : 'a pass) ~(init : S.t) : ('a, Errors.error) Result.t =
+    let result = t init in
+    Result.map result ~f:(fun (_, a) -> a)
+
+  (* ----- Base ----- *)
+
+  (* - Constructors - *)
+
+  let return (x : 'a) : 'a pass = fun s -> Ok (s, x)
+  let fail (err : Errors.error) : 'a pass = fun _ -> Error err
+
+  (* - State - *)
+
+  let get : S.t pass = fun s -> Ok (s, s)
+  let set (new_state : S.t) : unit pass = fun _ -> Ok (new_state, ())
+
+  (* - Combinators - *)
+
+  let ( let* ) (pass : 'a pass) (f : 'a -> 'b pass) : 'b pass =
+   fun s ->
+    match pass s with
+    | Ok (new_state, result) -> f result new_state
+    | Error err -> Error err
+
+  (* ----- Helpers ----- *)
+  (* TODO: remove this code duplication *)
+
+  let ( *> ) (x : _ pass) (y : 'a pass) : 'a pass =
+    let* _ = x in
+    y
+
+  let many (xs : 'a list) ~(f : 'a -> 'b pass) : 'b list pass =
+    let rec aux xs acc =
+      match xs with
+      | [] -> return acc
+      | a :: xs ->
+          let* b = f a in
+          aux xs (acc @ [ b ])
+    in
+    aux xs []
+
+  let many_unit (xs : 'a list) ~(f : 'a -> unit pass) : unit pass =
+    many xs ~f *> return ()
+end

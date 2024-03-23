@@ -20,7 +20,7 @@ let show_binop = function
 
 let rec show_expr = function
   | Constant c -> show_constant c
-  | Ident i -> i
+  | Ident i -> Ident.show_ident i
   | Binop (e1, op, e2) ->
       sprintf "%s %s %s" (show_expr e1) (show_binop op) (show_expr e2)
   | Builtin b -> show_builtin b
@@ -31,7 +31,8 @@ and show_builtin = function
   | Assert e -> sprintf "assert(%s)" (show_expr e)
 
 let show_stmt = function
-  | Assign (LvalueIdent i, e) -> sprintf "%s = %s" i (show_expr e)
+  | Assign (LvalueIdent i, e) ->
+      sprintf "%s = %s" (Ident.show_ident i) (show_expr e)
   | ExprStmt e -> show_expr e
 
 let show_terminator = function
@@ -48,7 +49,11 @@ let show_basicblock { label; body; terminator } =
   label ^ body
 
 let show_func_body { locals; entry_block; blocks } =
-  let locals = sprintf "locals: %s\n" (String.concat ~sep:", " locals) in
+  let locals =
+    locals
+    |> List.map ~f:Ident.show_ident
+    |> String.concat ~sep:", " |> sprintf "locals: %s\n"
+  in
   let blocks =
     entry_block :: blocks |> List.map ~f:show_basicblock |> String.concat_lines
   in

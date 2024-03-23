@@ -1,5 +1,5 @@
 open Base
-open Parsetree
+open Lookuptree
 open Ir
 
 type state = {
@@ -47,7 +47,7 @@ let switch_basic_block ~terminator ~next_label =
 (* ----- Pass ------ *)
 
 let map_op = function
-  | BinopPlus -> BinopIntPlus
+  | Parsetree.BinopPlus -> BinopIntPlus
   | BinopMinus -> BinopIntMinus
   | BinopMul -> BinopIntMul
   | BinopDiv -> BinopIntDiv
@@ -60,16 +60,16 @@ let map_op = function
   | BinopGte -> BinopIntGte
 
 let rec map_expr = function
-  | Parsetree.Constant (ConstantInt i) -> Ir.Constant (Ir.ConstantInt i)
+  | Lookuptree.Constant (ConstantInt i) -> Ir.Constant (Ir.ConstantInt i)
   | Ident i -> Ident i
   | Binop (e1, op, e2) -> Binop (map_expr e1, map_op op, map_expr e2)
-  | Call { callee = Ident "print"; args = [ e ] } ->
-      Builtin (Print (map_expr e))
-  | Call { callee = Ident "println"; args = [ e ] } ->
-      Builtin (Println (map_expr e))
-  | Call { callee = Ident "assert"; args = [ e ] } ->
-      Builtin (Assert (map_expr e))
+  | Builtin b -> Builtin (map_builtin b)
   | Call _ -> Printf.failwithf "Function calls are not supported" ()
+
+and map_builtin = function
+  | Lookuptree.Print e -> Print (map_expr e)
+  | Lookuptree.Println e -> Println (map_expr e)
+  | Lookuptree.Assert e -> Assert (map_expr e)
 
 let rec pass_stmt = function
   | LetDecl (ident, expr) | Assign (Ident ident, expr) ->
@@ -83,6 +83,7 @@ let rec pass_stmt = function
       switch_basic_block ~terminator:(Return (map_expr e)) ~next_label:lab
 
 and pass_stmts = many ~f:pass_stmt
+and pass_block { stmts; _ } = pass_stmts stmts
 
 and pass_if cond then_b else_b =
   (* ...
@@ -104,9 +105,9 @@ and pass_if cond then_b else_b =
       (CondBranch
          { cond = map_expr cond; if_true = then_label; if_false = else_label })
     ~next_label:then_label
-  *> pass_stmts then_b
+  *> pass_block then_b
   *> switch_basic_block ~terminator:(Jump after_label) ~next_label:else_label
-  *> pass_stmts else_b
+  *> pass_block else_b
   *> switch_basic_block ~terminator:(Jump after_label) ~next_label:after_label
 
 and pass_while cond body =
@@ -133,13 +134,13 @@ and pass_while cond body =
               if_false = after_label;
             })
        ~next_label:body_label
-  *> pass_stmts body
+  *> pass_block body
   *> switch_basic_block ~terminator:(Jump cond_label) ~next_label:after_label
 
-let lower ({ entry } : parsetree) : ir =
+let lower ({ entry } : lookuptree) : ir =
   let locals = Hoisting.hoist_all_locals entry in
   let pass_parsetree =
-    pass_stmts entry
+    pass_block entry
     *> let* s = get in
        let cur_block =
          assemble_cur_block s.cur_label s.cur_block
