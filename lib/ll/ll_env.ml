@@ -4,7 +4,8 @@ open Unix
 type ll_environment = {
   compiler_executable_path : Fpath.t;
   runtime_obj_path : Fpath.t;
-} [@@deriving show]
+}
+[@@deriving show]
 
 let runtime_obj_file_name = "runtime.o"
 
@@ -26,10 +27,10 @@ let rec _follow_symlink path =
       (* `actual_rel_path` is relative to the symlink at `path` *)
       let linked_path = Fpath.(normalize (parent path // v raw_rel_path)) in
       Logs.debug (fun m ->
-          m "Unix follow symlink %s -> %s" str_path (Fpath.to_string linked_path));
+          m "Unix follow symlink %s -> %s" str_path
+            (Fpath.to_string linked_path));
       _follow_symlink linked_path
   | _ -> path
-
 
 let _executable_path () =
   let spath = Stdlib.Sys.executable_name in
@@ -40,7 +41,8 @@ let _get_compiler_executable_path () =
   let path = _executable_path () in
   let resolved_path = _follow_symlink path in
   Logs.info (fun m ->
-      m "Located compiler executable: %s (may be a symlink), resolved to %s" (Fpath.to_string path)
+      m "Located compiler executable: %s (may be a symlink), resolved to %s"
+        (Fpath.to_string path)
         (Fpath.to_string resolved_path));
   _assert_file_exists resolved_path "Herbc compiler executable";
   resolved_path
@@ -58,5 +60,6 @@ let make_ll_env () =
       runtime_obj_path = _get_runtime_obj_path compiler_path;
     }
   in
-  Logs.debug (fun m -> m "Initialized ll_environment %s" (show_ll_environment env));
+  Logs.debug (fun m ->
+      m "Initialized ll_environment %s" (show_ll_environment env));
   env
