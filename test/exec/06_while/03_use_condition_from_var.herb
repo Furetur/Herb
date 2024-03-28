@@ -1,0 +1,14 @@
+entry {
+    let true = 0 == 0;
+    let false = 1 == 0;
+
+    let i = 0;
+    let cont = true;
+
+    while cont {
+        i = 15;
+        cont = false;
+    }
+
+    assert(i == 15);
+}

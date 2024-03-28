@@ -1,0 +1,14 @@
+entry {
+    let result = 0;
+
+    let true = 1 == 1;
+    let false = 1 == 0;
+
+    if true {
+        result = 1;
+    } else {
+        assert(false);
+    }
+
+    assert(result == 1);
+}

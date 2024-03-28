@@ -49,6 +49,15 @@ let as_temp_reg (ll_type : T.t) (instr : I.t) : V.t t =
   let* r = make_temp_reg ll_type in
   add_instr (r <-- instr) *> return r
 
+(* --- Type casts --- *)
+(* TODO: Currently, these functions are only needed
+   because bools are not supported. *)
+
+let int_to_bool (int_v : V.t) : V.t t =
+  as_temp_reg bool_t (I.trunc int_v bool_t)
+
+let bool_to_int (bool_v : V.t) : V.t t = as_temp_reg int_t (I.zext bool_v int_t)
+
 (* ----- Pass ----- *)
 
 let rec pass_expr = function
@@ -56,22 +65,33 @@ let rec pass_expr = function
   | Ident ident ->
       let* ptr = resolve_ident ident in
       as_temp_reg int_t (I.load ptr)
-  | Binop (l, op, r) -> (
-      let* l = pass_expr l in
-      let* r = pass_expr r in
-      match op with
-      | BinopIntPlus -> as_temp_reg int_t (I.add l r)
-      | BinopIntMinus -> as_temp_reg int_t (I.sub l r)
-      | BinopIntMul -> as_temp_reg int_t (I.mul l r)
-      | BinopIntDiv -> as_temp_reg int_t (I.sdiv l r)
-      | BinopIntMod -> as_temp_reg int_t (I.srem l r)
-      | BinopIntEq -> as_temp_reg bool_t (I.eq l r)
-      | BinopIntNeq -> as_temp_reg bool_t (I.ne l r)
-      | BinopIntLt -> as_temp_reg bool_t (I.slt l r)
-      | BinopIntLte -> as_temp_reg bool_t (I.sle l r)
-      | BinopIntGt -> as_temp_reg bool_t (I.sgt l r)
-      | BinopIntGte -> as_temp_reg bool_t (I.sge l r))
+  | Binop (l, op, r) -> pass_binop l op r
   | Builtin b -> pass_builtin b
+
+and pass_bool_expr e =
+  let* int_v = pass_expr e in
+  int_to_bool int_v
+
+and pass_binop l op r =
+  let make_int_binop instr = as_temp_reg int_t instr in
+  let make_bool_binop instr =
+    let* bool_r = as_temp_reg bool_t instr in
+    bool_to_int bool_r
+  in
+  let* l = pass_expr l in
+  let* r = pass_expr r in
+  match op with
+  | BinopIntPlus -> make_int_binop (I.add l r)
+  | BinopIntMinus -> make_int_binop (I.sub l r)
+  | BinopIntMul -> make_int_binop (I.mul l r)
+  | BinopIntDiv -> make_int_binop (I.sdiv l r)
+  | BinopIntMod -> make_int_binop (I.srem l r)
+  | BinopIntEq -> make_bool_binop (I.eq l r)
+  | BinopIntNeq -> make_bool_binop (I.ne l r)
+  | BinopIntLt -> make_bool_binop (I.slt l r)
+  | BinopIntLte -> make_bool_binop (I.sle l r)
+  | BinopIntGt -> make_bool_binop (I.sgt l r)
+  | BinopIntGte -> make_bool_binop (I.sge l r)
 
 and pass_builtin b =
   let pass_simple_builtin ll_func expr_arg =
@@ -82,7 +102,9 @@ and pass_builtin b =
   match b with
   | Print x -> pass_simple_builtin builtins.print x
   | Println x -> pass_simple_builtin builtins.println x
-  | Assert x -> pass_simple_builtin builtins.assert' x
+  | Assert x ->
+      let* v = pass_bool_expr x in
+      as_temp_reg int_t (I.call builtins.assert' [ v ])
 
 let pass_stmt = function
   | Assign (LvalueIdent ident, expr) ->
@@ -102,7 +124,7 @@ let pass_terminator = function
   | CondBranch { cond = expr; if_true; if_false } ->
       let* ll_true = resolve_label if_true in
       let* ll_false = resolve_label if_false in
-      let* v = pass_expr expr in
+      let* v = pass_bool_expr expr in
       add_instr (I.br v ll_true ll_false) *> return ()
 
 let pass_block { body; terminator; _ } =
