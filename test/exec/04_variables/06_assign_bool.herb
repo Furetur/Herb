@@ -1,0 +1,4 @@
+entry {
+    let true = 0 == 0;
+    assert(true);
+}
