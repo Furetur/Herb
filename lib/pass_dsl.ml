@@ -1,5 +1,11 @@
 open Base
 
+module Result_dsl_syntax = struct
+  let return = Result.return
+  let fail = Result.fail
+  let ( let* ) = Result.( >>= )
+end
+
 module type Pass_state = sig
   type t
 end
