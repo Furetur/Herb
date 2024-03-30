@@ -1,7 +1,7 @@
 open Base
 open Stdio
-
-let ( let* ) = Result.( >>= )
+open Errors
+open Pass_dsl.Result_dsl_syntax
 
 let run_clang llpath outpath =
   let env = Ll_env.make_ll_env () in
@@ -14,8 +14,8 @@ let run_clang llpath outpath =
   let exitcode = Stdlib.Sys.command cmd in
   if not (exitcode = 0) then print_endline "Clang returned a non-zero exit code"
 
-let gen ir ll_outpath exe_outpath =
+let gen ll_outpath exe_outpath ir : unit compilation_result =
   let m = Ll_module.gen_module ir in
   let* _ = Ll_write.write_to_file m ll_outpath in
   run_clang ll_outpath exe_outpath;
-  Ok ()
+  return ()

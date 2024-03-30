@@ -137,7 +137,7 @@ and pass_while cond body =
   *> pass_block body
   *> switch_basic_block ~terminator:(Jump cond_label) ~next_label:after_label
 
-let lower ({ entry } : lookuptree) : ir =
+let lower' ({ entry } : lookuptree) : ir =
   let locals = Hoisting.hoist_all_locals entry in
   let pass_parsetree =
     pass_block entry
@@ -165,3 +165,5 @@ let lower ({ entry } : lookuptree) : ir =
   in
   let ir = run_pass pass_parsetree ~init in
   Ir_cleanup.cleanup ir
+
+let lower lookuptree : ir Errors.compilation_result = Ok (lower' lookuptree)
