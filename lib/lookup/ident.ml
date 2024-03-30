@@ -2,9 +2,13 @@ open Base
 
 type scope_id = int [@@deriving show, eq, ord]
 
-(* TODO: define a better pretty printer for ident *)
 type ident = { scope_id : scope_id; var_name : string; var_id : int }
-[@@deriving eq, ord, show]
+[@@deriving eq, ord]
+
+let pp_ident fmt { scope_id; var_name; var_id } =
+  Stdlib.Format.fprintf fmt "%s_%d_%d" var_name scope_id var_id
+
+let show_ident ident = Stdlib.Format.asprintf "%a" pp_ident ident
 
 let mangle ident =
   Printf.sprintf "%s_%d_%d" ident.var_name ident.scope_id ident.var_id
